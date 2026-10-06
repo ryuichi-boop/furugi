@@ -427,7 +427,7 @@
 
       log('🔍 Google AIが鑑定中...');
 
-      // 確実に通る最新モデルのみを指定
+      // 最新の安定モデルのみ指定（gemini-1.5エラーの完全対策）
       const candidateModels = ['gemini-2.5-flash', 'gemini-2.0-flash'];
       let resData = null;
       let lastError = '';
@@ -524,5 +524,4 @@
     if (box.style.display === 'none' || box.style.display === '') {
       box.style.display = 'block';
       btn.textContent = '🔼 出品テンプレートを閉じる';
-    } else {
-      box.st
+    } el
