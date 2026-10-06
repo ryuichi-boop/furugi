@@ -231,23 +231,6 @@
     });
   }
 
-  // 利用可能なモデルをAPIから自動検索する関数
-  async function findWorkingModel(key) {
-    try {
-      const res = await fetch('https://generativelanguage.googleapis.com/v1beta/models?key=' + key);
-      const data = await res.json();
-      if (data.models && data.models.length > 0) {
-        // 画像解析(generateContent)に対応しているflashモデルを優先的に探す
-        const valid = data.models.filter(m => m.supportedGenerationMethods && m.supportedGenerationMethods.includes('generateContent'));
-        const flash = valid.find(m => m.name.includes('flash'));
-        if (flash) return flash.name.replace('models/', '');
-        if (valid.length > 0) return valid[0].name.replace('models/', '');
-      }
-    } catch(e) {}
-    // 取得できなかった場合のフォールバック候補
-    return 'gemini-3.8-flash';
-  }
-
   document.getElementById('analyzeBtn').onclick = async function() {
     const key = apiKeyInput.value.trim();
     if (!key) {
@@ -283,11 +266,10 @@
         parts.push({ inline_data: { mime_type: 'image/jpeg', data: b64 } });
       }
 
-      log('🔎 利用可能なAIモデルを自動判別中...');
-      const targetModel = await findWorkingModel(key);
-      log('🔍 ' + targetModel + ' で鑑定中...');
+      // Googleが明示指定した「gemini-3.8-flash」のみを直接実行
+      log('🔍 gemini-3.8-flash で鑑定中...');
 
-      const resp = await fetch('https://generativelanguage.googleapis.com/v1beta/models/' + targetModel + ':generateContent?key=' + key, {
+      const resp = await fetch('https://generativelanguage.googleapis.com/v1beta/models/gemini-3.8-flash:generateContent?key=' + key, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
@@ -295,6 +277,7 @@
           generationConfig: { response_mime_type: 'application/json' }
         })
       });
+
       const json = await resp.json();
       if (json.error) throw new Error(json.error.message);
       if (!json.candidates || !json.candidates[0]) throw new Error('解析結果を取得できませんでした');
