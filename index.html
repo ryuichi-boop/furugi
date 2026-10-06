@@ -3,39 +3,39 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>古着AIリサーチ＆出品 PRO</title>
+  <title>古着AIリサーチ＆出品</title>
   <style>
     * { box-sizing: border-box; margin: 0; padding: 0; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; }
-    body { background: #0f172a; color: #f8fafc; padding: 14px; display: flex; justify-content: center; }
+    body { background: #121212; color: #fff; padding: 16px; display: flex; justify-content: center; }
     .container { width: 100%; max-width: 480px; }
-    h1 { font-size: 1.35rem; font-weight: 800; margin-bottom: 14px; text-align: center; color: #38bdf8; }
-    .card { background: #1e293b; border-radius: 12px; padding: 16px; margin-bottom: 14px; border: 1px solid #334155; }
-    label { font-size: 0.9rem; font-weight: bold; color: #94a3b8; display: block; margin-bottom: 6px; }
-    input[type="text"], input[type="number"], input[type="password"] { width: 100%; padding: 12px; border-radius: 8px; border: 1px solid #475569; background: #0f172a; color: #fff; font-size: 1rem; margin-bottom: 8px; }
+    h1 { font-size: 1.25rem; font-weight: bold; margin-bottom: 16px; text-align: center; color: #38bdf8; }
+    .card { background: #1e1e1e; border-radius: 12px; padding: 16px; margin-bottom: 16px; border: 1px solid #333; }
+    label { font-size: 0.85rem; color: #aaa; display: block; margin-bottom: 6px; }
+    input[type="text"], input[type="number"], input[type="password"] { width: 100%; padding: 10px; border-radius: 6px; border: 1px solid #444; background: #2a2a2a; color: #fff; font-size: 0.95rem; margin-bottom: 8px; }
     
     .file-input-box {
       width: 100%;
-      padding: 10px;
+      padding: 12px;
       background: #1e3a8a;
       border: 2px dashed #38bdf8;
       border-radius: 8px;
       color: #fff;
-      font-size: 0.85rem;
-      margin-bottom: 8px;
+      font-size: 0.9rem;
+      margin-bottom: 12px;
       display: block;
     }
 
     .status-container {
-      display: grid;
-      grid-template-columns: 1fr 1fr 1fr;
-      gap: 6px;
-      margin-bottom: 12px;
+      display: flex;
+      gap: 8px;
+      margin-bottom: 16px;
     }
     .status-card {
-      height: 74px;
-      background: #090d16;
+      flex: 1;
+      height: 70px;
+      background: #1e1e1e;
       border-radius: 8px;
-      border: 1px solid #334155;
+      border: 1px solid #444;
       display: flex;
       flex-direction: column;
       align-items: center;
@@ -44,99 +44,75 @@
       text-align: center;
     }
     .status-icon { font-size: 1.2rem; margin-bottom: 2px; }
-    .status-text { font-size: 0.7rem; color: #94a3b8; line-height: 1.2; }
+    .status-text { font-size: 0.75rem; color: #888; line-height: 1.2; }
     .status-ready { border-color: #10b981; background: #064e3b; }
-    .status-ready .status-text { color: #6ee7b7; font-weight: bold; }
-
-    .toggle-row {
-      display: flex;
-      align-items: center;
-      gap: 8px;
-      margin-bottom: 12px;
-      font-size: 0.9rem;
-      color: #cbd5e1;
-    }
+    .status-ready .status-text { color: #34d399; font-weight: bold; }
 
     #statusBox {
       background: #000;
-      border: 1px solid #475569;
+      border: 1px solid #444;
       border-radius: 6px;
       padding: 10px;
-      font-size: 0.9rem;
+      font-size: 0.85rem;
       color: #38bdf8;
       margin-bottom: 12px;
       line-height: 1.4;
-      font-weight: bold;
     }
 
-    .action-btn { width: 100%; background: #0284c7; color: #fff; border: none; padding: 15px; border-radius: 8px; font-size: 1.1rem; font-weight: bold; cursor: pointer; }
-    .action-btn:disabled { background: #475569; }
+    button.action-btn { width: 100%; background: #10b981; color: #fff; border: none; padding: 14px; border-radius: 8px; font-size: 1rem; font-weight: bold; cursor: pointer; }
+    button.action-btn:disabled { background: #555; }
     
-    .judge-box {
-      border-radius: 10px;
-      padding: 12px;
-      text-align: center;
-      margin-bottom: 14px;
-      font-weight: 900;
-      font-size: 1.2rem;
-      letter-spacing: 0.5px;
-    }
-    .judge-go { background: #065f46; color: #6ee7b7; border: 2px solid #10b981; }
-    .judge-consider { background: #854d0e; color: #fde047; border: 2px solid #eab308; }
-    .judge-stay { background: #991b1b; color: #fca5a5; border: 2px solid #ef4444; }
-
     .market-card {
-      background: #090d16;
+      background: #262626;
       border-radius: 8px;
-      padding: 12px;
-      margin-bottom: 10px;
-      border-left: 6px solid #38bdf8;
+      padding: 10px 12px;
+      margin-bottom: 8px;
+      border-left: 4px solid #38bdf8;
     }
-    .market-card.mercari { border-left-color: #ea580c; }
-    .market-card.yahooflea { border-left-color: #db2777; }
-    .market-card.yahooauc { border-left-color: #eab308; }
+    .market-card.mercari { border-left-color: #ff0211; }
+    .market-card.yahooflea { border-left-color: #ff007f; }
+    .market-card.yahooauc { border-left-color: #e5a00d; }
 
     .market-header {
       font-weight: bold;
-      font-size: 1rem;
-      margin-bottom: 6px;
-      display: space-between;
+      font-size: 0.95rem;
+      margin-bottom: 4px;
       display: flex;
       justify-content: space-between;
     }
     .market-row {
       display: flex;
       justify-content: space-between;
-      font-size: 0.9rem;
-      color: #cbd5e1;
-      margin-bottom: 4px;
+      font-size: 0.85rem;
+      color: #ccc;
+      margin-bottom: 2px;
     }
     .market-profit-box {
       margin-top: 6px;
       padding-top: 6px;
-      border-top: 1px dashed #334155;
-      font-size: 1.05rem;
-      font-weight: 800;
+      border-top: 1px dashed #444;
+      font-size: 0.95rem;
+      font-weight: bold;
       display: flex;
       justify-content: space-between;
     }
 
     .result-box { display: none; }
     .result-item { margin-bottom: 12px; }
-    .result-label { font-size: 0.85rem; color: #94a3b8; }
-    .result-val { font-size: 1.2rem; font-weight: 800; color: #f8fafc; }
+    .result-label { font-size: 0.8rem; color: #aaa; }
+    .result-val { font-size: 1.1rem; font-weight: bold; }
 
     .kw-display-box {
       width: 100%;
-      padding: 12px;
-      background: #090d16;
-      border: 2px solid #38bdf8;
-      border-radius: 8px;
+      padding: 10px;
+      background: #000;
+      border: 1px solid #38bdf8;
+      border-radius: 6px;
       color: #38bdf8;
-      font-size: 1.05rem;
+      font-size: 1rem;
       font-weight: bold;
-      margin-top: 6px;
-      margin-bottom: 8px;
+      margin-top: 4px;
+      margin-bottom: 6px;
     }
 
     .market-btn {
@@ -145,60 +121,60 @@
       text-align: center;
       color: #fff;
       text-decoration: none;
-      padding: 13px;
-      border-radius: 8px;
+      padding: 12px;
+      border-radius: 6px;
       font-weight: bold;
-      font-size: 0.95rem;
+      font-size: 0.9rem;
       margin-top: 6px;
     }
-    .btn-mercari { background: #ea580c; }
-    .btn-yahoo-auc { background: #ca8a04; }
-    .btn-yahoo-fleamarket { background: #db2777; }
-    .sub-btn { display: block; width: 100%; text-align: center; background: #334155; color: #fff; border: 1px solid #64748b; padding: 12px; border-radius: 8px; font-size: 0.95rem; font-weight: bold; cursor: pointer; margin-top: 8px; }
+    .btn-mercari { background: #ff0211; }
+    .btn-yahoo-auc { background: #e5a00d; }
+    .btn-yahoo-fleamarket { background: #ff007f; }
+    .sub-btn { display: block; width: 100%; text-align: center; background: #333; color: #fff; border: 1px solid #555; padding: 10px; border-radius: 6px; font-size: 0.85rem; font-weight: bold; cursor: pointer; margin-top: 6px; }
 
     .template-toggle-btn {
       width: 100%;
       background: #4f46e5;
       color: #fff;
       border: none;
-      padding: 14px;
-      border-radius: 8px;
-      font-size: 1rem;
+      padding: 12px;
+      border-radius: 6px;
+      font-size: 0.95rem;
       font-weight: bold;
       cursor: pointer;
-      margin-top: 16px;
+      margin-top: 14px;
     }
     .template-box {
       display: none;
-      margin-top: 12px;
-      background: #090d16;
+      margin-top: 10px;
+      background: #111;
       border: 1px solid #4338ca;
       border-radius: 8px;
-      padding: 12px;
+      padding: 10px;
     }
     .template-textarea {
       width: 100%;
-      height: 240px;
-      background: #1e293b;
-      border: 1px solid #475569;
-      border-radius: 6px;
+      height: 200px;
+      background: #222;
+      border: 1px solid #444;
+      border-radius: 4px;
       color: #fff;
-      padding: 10px;
-      font-size: 0.9rem;
-      line-height: 1.5;
+      padding: 8px;
+      font-size: 0.85rem;
+      line-height: 1.4;
       resize: vertical;
-      margin-top: 6px;
-      margin-bottom: 8px;
+      margin-top: 4px;
+      margin-bottom: 6px;
     }
   </style>
 </head>
 <body>
 
 <div class="container">
-  <h1>👕 古着AIリサーチ＆出品 PRO</h1>
+  <h1>👕 古着AIリサーチ＆出品</h1>
 
   <div class="card">
-    <label for="apiKey">Gemini APIキー（端末内に自動保存）</label>
+    <label for="apiKey">Gemini APIキー（スマホ内に自動保存されます）</label>
     <input type="password" id="apiKey" placeholder="AIキーを入力">
   </div>
 
@@ -206,124 +182,110 @@
     <label>📸 ① 服の全体写真（必須）：</label>
     <input type="file" id="mainImageInput" accept="image/*" class="file-input-box">
 
-    <label>🏷️ ② 首元タグ・ブランドタグ（推奨）：</label>
+    <label>🏷️ ② 首元タグ・ブランドタグの写真（推奨）：</label>
     <input type="file" id="tagImageInput" accept="image/*" class="file-input-box">
-
-    <label>🔍 ③ ダメージ・汚れ・シミ部分（任意）：</label>
-    <input type="file" id="damageImageInput" accept="image/*" class="file-input-box">
     
     <div class="status-container">
       <div id="cardMain" class="status-card">
         <div id="iconMain" class="status-icon">⚪</div>
-        <div id="textMain" class="status-text">① 全体<br>未選択</div>
+        <div id="textMain" class="status-text">① 全体写真<br>未選択</div>
       </div>
       <div id="cardTag" class="status-card">
         <div id="iconTag" class="status-icon">⚪</div>
-        <div id="textTag" class="status-text">② タグ<br>未選択</div>
-      </div>
-      <div id="cardDamage" class="status-card">
-        <div id="iconDamage" class="status-icon">⚪</div>
-        <div id="textDamage" class="status-text">③ ダメージ<br>なし</div>
+        <div id="textTag" class="status-text">② タグ写真<br>未選択</div>
       </div>
     </div>
 
     <label for="purchasePrice">🏷️ 店舗の値札価格 / 仕入れ値（円）：</label>
-    <input type="number" id="purchasePrice" placeholder="例: 1200（空欄なら0円計算）" inputmode="numeric">
+    <input type="number" id="purchasePrice" placeholder="例: 1500（未入力でも計算します）" inputmode="numeric">
 
-    <div class="toggle-row">
-      <input type="checkbox" id="autoAnalyzeToggle" style="width: 18px; height: 18px;">
-      <label for="autoAnalyzeToggle" style="margin-bottom:0; cursor:pointer;">⚡ 全体写真を選んだら即座に自動解析する</label>
-    </div>
-
-    <div id="statusBox">状態：写真を選んで「AI相場解析スタート」を押してな！</div>
+    <div id="statusBox">状態：写真を選んで「AIで相場を解析する」を押してな！</div>
     
-    <button id="analyzeBtn" class="action-btn">🚀 AI相場解析スタート</button>
+    <button id="analyzeBtn" class="action-btn">AIで相場を解析する</button>
   </div>
 
   <div id="resultCard" class="card result-box">
-    <div id="judgeBox" class="judge-box">判定中...</div>
-
     <div class="result-item">
       <div class="result-label">特定ブランド</div>
       <div id="resBrand" class="result-val">-</div>
     </div>
     <div class="result-item">
       <div class="result-label">アイテム / 特徴</div>
-      <div id="resFeatures" class="result-val" style="font-size: 1rem; font-weight: normal;">-</div>
+      <div id="resFeatures" class="result-val" style="font-size: 0.95rem; font-weight: normal;">-</div>
     </div>
 
-    <div style="margin: 16px 0 10px 0;">
-      <div style="font-size: 0.9rem; color: #38bdf8; font-weight: bold; margin-bottom: 8px;">📊 3大サイト別相場 ＆ 見込み手残り</div>
+    <div style="margin: 14px 0 8px 0;">
+      <div style="font-size: 0.85rem; color: #38bdf8; font-weight: bold; margin-bottom: 6px;">📊 3大サイト別：売れた最低値・最高値＆手残りレンジ</div>
 
       <div class="market-card mercari">
         <div class="market-header">
-          <span style="color:#fb923c;">🔴 メルカリ (10%)</span>
-          <span style="color:#94a3b8; font-size:0.85rem;">想定送料: <span id="mercariShip">¥0</span></span>
+          <span style="color:#ff6b6b;">🔴 メルカリ（手数料10%）</span>
+          <span style="color:#888; font-size:0.75rem;">想定送料: <span id="mercariShip">¥0</span></span>
         </div>
         <div class="market-row">
-          <span>売れた実績レンジ</span>
+          <span>売れた価格帯（実績）</span>
           <span style="font-weight:bold; color:#fff;" id="mercariRange">¥0 〜 ¥0</span>
         </div>
         <div class="market-profit-box">
-          <span>見込み純利益</span>
+          <span>見込み純利益レンジ</span>
           <span id="mercariProfit" style="color:#38bdf8;">¥0 〜 ¥0</span>
         </div>
       </div>
 
       <div class="market-card yahooflea">
         <div class="market-header">
-          <span style="color:#f472b6;">🟣 Yahoo!フリマ (5%)</span>
-          <span style="color:#94a3b8; font-size:0.85rem;">想定送料: <span id="yahoofleaShip">¥0</span></span>
+          <span style="color:#ff85c0;">🟣 Yahoo!フリマ（手数料5%）</span>
+          <span style="color:#888; font-size:0.75rem;">想定送料: <span id="yahoofleaShip">¥0</span></span>
         </div>
         <div class="market-row">
-          <span>売れた実績レンジ</span>
+          <span>売れた価格帯（実績）</span>
           <span style="font-weight:bold; color:#fff;" id="yahoofleaRange">¥0 〜 ¥0</span>
         </div>
         <div class="market-profit-box">
-          <span>見込み純利益</span>
+          <span>見込み純利益レンジ</span>
           <span id="yahoofleaProfit" style="color:#38bdf8;">¥0 〜 ¥0</span>
         </div>
       </div>
 
       <div class="market-card yahooauc">
         <div class="market-header">
-          <span style="color:#facc15;">🔨 ヤフオク落札 (10%)</span>
-          <span style="color:#94a3b8; font-size:0.85rem;">想定送料: <span id="yahooaucShip">¥0</span></span>
+          <span style="color:#ffd666;">🔨 ヤフオク（落札・手数料10%）</span>
+          <span style="color:#888; font-size:0.75rem;">想定送料: <span id="yahooaucShip">¥0</span></span>
         </div>
         <div class="market-row">
-          <span>売れた実績レンジ</span>
+          <span>売れた価格帯（実績）</span>
           <span style="font-weight:bold; color:#fff;" id="yahooaucRange">¥0 〜 ¥0</span>
         </div>
         <div class="market-profit-box">
-          <span>見込み純利益</span>
+          <span>見込み純利益レンジ</span>
           <span id="yahooaucProfit" style="color:#38bdf8;">¥0 〜 ¥0</span>
         </div>
       </div>
     </div>
 
-    <div class="result-item" style="margin-top: 14px;">
-      <div class="result-label" style="color: #38bdf8; font-weight: bold;">🔍 検索用ワード（タップで全選択）：</div>
+    <div class="result-item" style="margin-top: 12px;">
+      <div class="result-label">🔍 検索用ワード（タップで全選択）：</div>
       <input type="text" id="kwInput" class="kw-display-box" readonly onclick="this.select();">
     </div>
     
-    <button id="copyKwBtn" class="sub-btn">📋 検索ワードをコピー</button>
+    <button id="copyKwBtn" class="sub-btn">📋 検索ワードをコピーする</button>
 
-    <div style="margin-top: 14px;">
-      <div style="font-size: 0.85rem; color: #94a3b8; margin-bottom: 4px; font-weight: bold;">🌐 実際の売り切れ相場を目視確認：</div>
+    <div style="margin-top: 12px;">
+      <div style="font-size: 0.8rem; color: #888; margin-bottom: 4px;">🌐 実際の売り切れ相場を目視確認：</div>
       <a id="linkMercari" class="market-btn btn-mercari" href="#" target="_blank" rel="noopener noreferrer">🔴 メルカリで売り切れを見る</a>
       <a id="linkPayPayFlea" class="market-btn btn-yahoo-fleamarket" href="#" target="_blank" rel="noopener noreferrer">🟣 Yahoo!フリマで相場を見る</a>
       <a id="linkYahooAuc" class="market-btn btn-yahoo-auc" href="#" target="_blank" rel="noopener noreferrer">🔨 ヤフオクで落札相場を見る</a>
     </div>
 
-    <button id="toggleTemplateBtn" class="template-toggle-btn">📝 出品用タイトル＆説明文を表示</button>
+    <button id="toggleTemplateBtn" class="template-toggle-btn">📝 出品用タイトル＆説明文テンプレートを表示</button>
     <div id="templateBox" class="template-box">
-      <label style="color:#a5b4fc; font-weight:bold;">📌 推奨商品タイトル（40字以内）：</label>
+      <label style="color:#818cf8;">📌 推奨商品タイトル（40文字以内・コピー可）：</label>
       <input type="text" id="templateTitle" readonly onclick="this.select();">
-      <button id="copyTitleBtn" class="sub-btn" style="margin-top:2px; margin-bottom:12px;">📋 タイトルをコピー</button>
+      <button id="copyTitleBtn" class="sub-btn" style="margin-top:0; margin-bottom:10px;">📋 タイトルをコピーする</button>
 
-      <label style="color:#a5b4fc; font-weight:bold;">📄 商品説明文（傷み・状態も反映済み）：</label>
+      <label style="color:#818cf8;">📄 出品用商品説明文（コピーしてそのまま使えます）：</label>
       <textarea id="templateDescription" class="template-textarea" readonly></textarea>
-      <button id="copyDescBtn" class="sub-btn" style="margin-top:2px;">📋 説明文を丸ごとコピー</button>
+      <button id="copyDescBtn" class="sub-btn" style="margin-top:0;">📋 説明文を丸ごとコピーする</button>
     </div>
   </div>
 </div>
@@ -336,13 +298,6 @@
     localStorage.setItem('furugi_gemini_api_key', apiKeyInput.value.trim());
   });
 
-  const autoToggle = document.getElementById('autoAnalyzeToggle');
-  const savedAuto = localStorage.getItem('furugi_auto_analyze');
-  if (savedAuto === 'true') autoToggle.checked = true;
-  autoToggle.addEventListener('change', () => {
-    localStorage.setItem('furugi_auto_analyze', autoToggle.checked);
-  });
-
   function log(msg) {
     document.getElementById('statusBox').textContent = '状態：' + msg;
   }
@@ -350,35 +305,35 @@
   function updateStatusCards() {
     const mainFile = document.getElementById('mainImageInput').files[0];
     const tagFile = document.getElementById('tagImageInput').files[0];
-    const dmgFile = document.getElementById('damageImageInput').files[0];
 
-    const setCard = (cardId, iconId, textId, file, labelOk, labelNo) => {
-      const card = document.getElementById(cardId);
-      const icon = document.getElementById(iconId);
-      const text = document.getElementById(textId);
-      if (file) {
-        card.className = 'status-card status-ready';
-        icon.textContent = '🟢';
-        text.innerHTML = `${labelOk}<br>${file.name.slice(-8)}`;
-      } else {
-        card.className = 'status-card';
-        icon.textContent = '⚪';
-        text.innerHTML = labelNo;
-      }
-    };
+    const cardMain = document.getElementById('cardMain');
+    const iconMain = document.getElementById('iconMain');
+    const textMain = document.getElementById('textMain');
+    if (mainFile) {
+      cardMain.className = 'status-card status-ready';
+      iconMain.textContent = '🟢';
+      textMain.innerHTML = '全体写真：OK<br>' + mainFile.name.slice(-12);
+    } else {
+      cardMain.className = 'status-card';
+      iconMain.textContent = '⚪';
+      textMain.innerHTML = '① 全体写真<br>未選択';
+    }
 
-    setCard('cardMain', 'iconMain', 'textMain', mainFile, '①全体OK', '① 全体<br>未選択');
-    setCard('cardTag', 'iconTag', 'textTag', tagFile, '②タグOK', '② タグ<br>未選択');
-    setCard('cardDamage', 'iconDamage', 'textDamage', dmgFile, '③傷みOK', '③ ダメージ<br>なし');
+    const cardTag = document.getElementById('cardTag');
+    const iconTag = document.getElementById('iconTag');
+    const textTag = document.getElementById('textTag');
+    if (tagFile) {
+      cardTag.className = 'status-card status-ready';
+      iconTag.textContent = '🟢';
+      textTag.innerHTML = 'タグ写真：OK<br>' + tagFile.name.slice(-12);
+    } else {
+      cardTag.className = 'status-card';
+      iconTag.textContent = '⚪';
+      textTag.innerHTML = '② タグ写真<br>未選択';
+    }
   }
 
-  setInterval(updateStatusCards, 400);
-
-  document.getElementById('mainImageInput').addEventListener('change', () => {
-    if (autoToggle.checked) {
-      setTimeout(() => startAnalysis(), 300);
-    }
-  });
+  setInterval(updateStatusCards, 500);
 
   function compressImage(file) {
     return new Promise((resolve, reject) => {
@@ -405,18 +360,15 @@
   }
 
   const analyzeBtn = document.getElementById('analyzeBtn');
-  analyzeBtn.addEventListener('click', () => startAnalysis());
-
-  async function startAnalysis() {
+  analyzeBtn.addEventListener('click', async () => {
     const key = apiKeyInput.value.trim();
     if (!key) { alert('Gemini APIキーを入力してください'); return; }
 
     const mainFile = document.getElementById('mainImageInput').files[0];
     const tagFile = document.getElementById('tagImageInput').files[0];
-    const dmgFile = document.getElementById('damageImageInput').files[0];
 
     if (!mainFile && !tagFile) {
-      alert('写真が選ばれていません。「ファイルを選択」をもう一度タップして写真を選び直してください！');
+      alert('① 全体写真、または ② タグ写真を選択してください');
       return;
     }
 
@@ -429,7 +381,7 @@
       const parts = [];
       const prompt = `あなたはプロの古着せどり・物販バイヤーです。
 提供された画像からブランド、モデル、特徴、サイズを精密特定してください。
-もしダメージ画像が含まれていれば、状態欄に具体的に記載してください。
+日本国内の2次流通フリマ相場（メルカリ、Yahoo!フリマ、ヤフオク直近の「売れた価格帯」）を推定してください。
 
 JSON形式のみで出力してください：
 {
@@ -437,13 +389,12 @@ JSON形式のみで出力してください：
   "features": "アイテム名、色、特徴（30字以内）",
   "shipping_fee": 750,
   "search_keyword": "検索用ワード（スペース区切り3語程度）",
-  "condition_note": "ダメージ画像が有ればその具体的な状態、無ければ『目立つ汚れなし・良好』等",
   "mercari": { "min_price": 4000, "max_price": 7500 },
   "yahooflea": { "min_price": 3800, "max_price": 7000 },
   "yahooauc": { "min_price": 4500, "max_price": 9000 },
   "listing_template": {
     "title": "40文字以内の検索ヒット重視タイトル",
-    "description": "商品の魅力、実寸プレースホルダー、コンディション（ダメージ反映）、発送方法を整えた説明文"
+    "description": "商品の魅力、実寸プレースホルダー、コンディション、発送方法を整えた説明文"
   }
 }`;
       parts.push({ text: prompt });
@@ -455,10 +406,6 @@ JSON形式のみで出力してください：
       if (tagFile) {
         const b64Tag = await compressImage(tagFile);
         parts.push({ inline_data: { mime_type: 'image/jpeg', data: b64Tag } });
-      }
-      if (dmgFile) {
-        const b64Dmg = await compressImage(dmgFile);
-        parts.push({ inline_data: { mime_type: 'image/jpeg', data: b64Dmg } });
       }
 
       log('🔍 Google AIが鑑定中...');
@@ -511,28 +458,55 @@ JSON形式のみで出力してください：
         const el = document.getElementById(profitId);
         el.innerHTML = `${fmt(minProfit)} 〜 ${fmt(maxProfit)}`;
         el.style.color = minProfit >= 0 ? '#38bdf8' : (maxProfit > 0 ? '#fde68a' : '#f87171');
-        return { minProfit, maxProfit };
       }
 
-      const mProfit = renderCard('mercariRange', 'mercariShip', 'mercariProfit', resData.mercari, 0.10);
+      renderCard('mercariRange', 'mercariShip', 'mercariProfit', resData.mercari, 0.10);
       renderCard('yahoofleaRange', 'yahoofleaShip', 'yahoofleaProfit', resData.yahooflea, 0.05);
       renderCard('yahooaucRange', 'yahooaucShip', 'yahooaucProfit', resData.yahooauc, 0.10);
-
-      const judgeBox = document.getElementById('judgeBox');
-      if (mProfit.minProfit >= 3000) {
-        judgeBox.className = 'judge-box judge-go';
-        judgeBox.innerHTML = `🟢 仕入れGO！（見込み手残り +¥${mProfit.minProfit.toLocaleString()}〜）`;
-      } else if (mProfit.minProfit >= 1500) {
-        judgeBox.className = 'judge-box judge-consider';
-        judgeBox.innerHTML = `🟡 要検討（手堅い利益 +¥${mProfit.minProfit.toLocaleString()}〜）`;
-      } else {
-        judgeBox.className = 'judge-box judge-stay';
-        judgeBox.innerHTML = `🔴 仕入れ見送り（薄利または赤字リスク）`;
-      }
 
       const rawKeyword = resData.search_keyword || (resData.brand + ' 古着');
       document.getElementById('kwInput').value = rawKeyword;
 
       const encKw = encodeURIComponent(rawKeyword);
       document.getElementById('linkMercari').href = `https://jp.mercari.com/search?keyword=${encKw}&status=sold_out`;
-      document.getElementById('linkPayPayFlea').href = `https://paypayfleamarket.yahoo.co.jp/search/${encK
+      document.getElementById('linkPayPayFlea').href = `https://paypayfleamarket.yahoo.co.jp/search/${encKw}?open=picture&itemStatus=SOLD_OUT`;
+      document.getElementById('linkYahooAuc').href = `https://auctions.yahoo.co.jp/closedsearch/closedsearch?p=${encKw}&va=${encKw}&b=1&n=20`;
+
+      if (resData.listing_template) {
+        document.getElementById('templateTitle').value = resData.listing_template.title || '';
+        document.getElementById('templateDescription').value = resData.listing_template.description || '';
+      }
+
+      document.getElementById('resultCard').style.display = 'block';
+      log('🎉 リサーチ完了！');
+    } catch (err) {
+      log('❌ エラー: ' + err.message);
+      alert('エラー: ' + err.message);
+    } finally {
+      analyzeBtn.disabled = false;
+    }
+  });
+
+  document.getElementById('toggleTemplateBtn').addEventListener('click', () => {
+    const box = document.getElementById('templateBox');
+    const btn = document.getElementById('toggleTemplateBtn');
+    if (box.style.display === 'none' || box.style.display === '') {
+      box.style.display = 'block';
+      btn.textContent = '🔼 出品テンプレートを閉じる';
+    } else {
+      box.style.display = 'none';
+      btn.textContent = '📝 出品用タイトル＆説明文テンプレートを表示';
+    }
+  });
+
+  function copyText(val, msg) {
+    if (!val) return;
+    navigator.clipboard.writeText(val).then(() => alert(msg)).catch(() => prompt('コピーしてな：', val));
+  }
+  document.getElementById('copyKwBtn').onclick = () => copyText(document.getElementById('kwInput').value, '検索ワードをコピーしました！');
+  document.getElementById('copyTitleBtn').onclick = () => copyText(document.getElementById('templateTitle').value, 'タイトルをコピーしました！');
+  document.getElementById('copyDescBtn').onclick = () => copyText(document.getElementById('templateDescription').value, '説明文をコピーしました！');
+</script>
+
+</body>
+</html>
