@@ -72,7 +72,6 @@
     .action-btn { width: 100%; background: #0284c7; color: #fff; border: none; padding: 15px; border-radius: 8px; font-size: 1.1rem; font-weight: bold; cursor: pointer; }
     .action-btn:disabled { background: #475569; }
     
-    /* 判定バッジ */
     .judge-box {
       border-radius: 10px;
       padding: 12px;
@@ -101,6 +100,7 @@
       font-weight: bold;
       font-size: 1rem;
       margin-bottom: 6px;
+      display: space-between;
       display: flex;
       justify-content: space-between;
     }
@@ -241,7 +241,6 @@
   </div>
 
   <div id="resultCard" class="card result-box">
-    <!-- 仕入れ判定バッジ -->
     <div id="judgeBox" class="judge-box">判定中...</div>
 
     <div class="result-item">
@@ -417,12 +416,12 @@
     const dmgFile = document.getElementById('damageImageInput').files[0];
 
     if (!mainFile && !tagFile) {
-      alert('① 全体写真、または ② タグ写真を選択してください');
+      alert('写真が選ばれていません。「ファイルを選択」をもう一度タップして写真を選び直してください！');
       return;
     }
 
     analyzeBtn.disabled = true;
-    log('⏳ 画像を高速圧縮中...');
+    log('⏳ 画像を圧縮中...');
     document.getElementById('resultCard').style.display = 'none';
     document.getElementById('templateBox').style.display = 'none';
 
@@ -430,7 +429,7 @@
       const parts = [];
       const prompt = `あなたはプロの古着せどり・物販バイヤーです。
 提供された画像からブランド、モデル、特徴、サイズを精密特定してください。
-もしダメージ画像（シミ、擦れ、破れなど）が含まれていれば、状態欄に具体的に記載してください。
+もしダメージ画像が含まれていれば、状態欄に具体的に記載してください。
 
 JSON形式のみで出力してください：
 {
@@ -464,7 +463,7 @@ JSON形式のみで出力してください：
 
       log('🔍 Google AIが鑑定中...');
 
-      const candidateModels = ['gemini-2.5-flash-lite', 'gemini-2.5-flash', 'gemini-2.0-flash'];
+      const candidateModels = ['gemini-2.5-flash', 'gemini-2.0-flash', 'gemini-1.5-flash'];
       let resData = null;
       let lastError = null;
 
@@ -519,11 +518,10 @@ JSON形式のみで出力してください：
       renderCard('yahoofleaRange', 'yahoofleaShip', 'yahoofleaProfit', resData.yahooflea, 0.05);
       renderCard('yahooaucRange', 'yahooaucShip', 'yahooaucProfit', resData.yahooauc, 0.10);
 
-      // 自動仕入れ判定ロジック（メルカリの最低利益ベース）
       const judgeBox = document.getElementById('judgeBox');
       if (mProfit.minProfit >= 3000) {
         judgeBox.className = 'judge-box judge-go';
-        judgeBox.innerHTML = `🟢 仕入れGO！（見込み利益 +¥${mProfit.minProfit.toLocaleString()}以上）`;
+        judgeBox.innerHTML = `🟢 仕入れGO！（見込み手残り +¥${mProfit.minProfit.toLocaleString()}〜）`;
       } else if (mProfit.minProfit >= 1500) {
         judgeBox.className = 'judge-box judge-consider';
         judgeBox.innerHTML = `🟡 要検討（手堅い利益 +¥${mProfit.minProfit.toLocaleString()}〜）`;
@@ -537,4 +535,4 @@ JSON形式のみで出力してください：
 
       const encKw = encodeURIComponent(rawKeyword);
       document.getElementById('linkMercari').href = `https://jp.mercari.com/search?keyword=${encKw}&status=sold_out`;
-      document.getElementById('linkPayPayFlea').href = `https:
+      document.getElementById('linkPayPayFlea').href = `https://paypayfleamarket.yahoo.co.jp/search/${encK
