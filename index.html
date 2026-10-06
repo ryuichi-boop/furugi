@@ -268,7 +268,8 @@
 
       log('🔍 Google AIが鑑定中...');
 
-      const candidateModels = ['gemini-2.5-flash', 'gemini-2.0-flash'];
+      // Googleから指定された公式モデル「gemini-3.8-flash」を直接呼び出し
+      const candidateModels = ['gemini-3.8-flash'];
       let resData = null;
       let lastError = '';
 
