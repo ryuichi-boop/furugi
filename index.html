@@ -96,7 +96,7 @@
     <label>🔍 ③ ダメージ・汚れ（任意）：</label>
     <input type="file" id="damageImageInput" accept="image/*" class="file-input-box">
 
-    <label for="purchasePrice">🏷️ 店舗の値札価格 / 仕入れ値（円）：</label>
+    <label for="purchasePrice">🏷️️ 店舗の値札価格 / 仕入れ値（円）：</label>
     <input type="number" id="purchasePrice" value="0" inputmode="numeric">
 
     <div id="statusBox">状態：ボタンを押すと解析が始まります</div>
@@ -266,23 +266,42 @@
         parts.push({ inline_data: { mime_type: 'image/jpeg', data: b64 } });
       }
 
-      // Googleが明示指定した「gemini-3.8-flash」のみを直接実行
-      log('🔍 gemini-3.8-flash で鑑定中...');
+      // 混雑時に順番に試すバックアップリスト
+      const tryModels = ['gemini-3.8-flash', 'gemini-3.8-flash-lite', 'gemini-2.5-flash'];
+      let resData = null;
+      let lastErrMsg = '';
 
-      const resp = await fetch('https://generativelanguage.googleapis.com/v1beta/models/gemini-3.8-flash:generateContent?key=' + key, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          contents: [{ parts: parts }],
-          generationConfig: { response_mime_type: 'application/json' }
-        })
-      });
+      for (let m = 0; m < tryModels.length; m++) {
+        const modelName = tryModels[m];
+        log('🔍 ' + modelName + ' で鑑定中...');
 
-      const json = await resp.json();
-      if (json.error) throw new Error(json.error.message);
-      if (!json.candidates || !json.candidates[0]) throw new Error('解析結果を取得できませんでした');
+        try {
+          const resp = await fetch('https://generativelanguage.googleapis.com/v1beta/models/' + modelName + ':generateContent?key=' + key, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              contents: [{ parts: parts }],
+              generationConfig: { response_mime_type: 'application/json' }
+            })
+          });
 
-      const resData = JSON.parse(json.candidates[0].content.parts[0].text);
+          const json = await resp.json();
+          if (json.error) {
+            lastErrMsg = json.error.message;
+            // 混雑(high demand)や制限なら次のモデルを即試す
+            continue;
+          }
+
+          if (json.candidates && json.candidates[0]) {
+            resData = JSON.parse(json.candidates[0].content.parts[0].text);
+            break; // 成功したらループを抜ける
+          }
+        } catch (err) {
+          lastErrMsg = err.message;
+        }
+      }
+
+      if (!resData) throw new Error(lastErrMsg || '現在AIサーバーが混み合っています。少し時間をおいてお試しください。');
 
       document.getElementById('resBrand').textContent = resData.brand || '不明';
       document.getElementById('resFeatures').textContent = resData.features || '-';
