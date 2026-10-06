@@ -325,7 +325,18 @@
     document.getElementById('statusBox').textContent = '状態：' + msg;
   }
 
-  function updateStatus(cardId, iconId, textId, inputEl, okLabel, noLabel) {
+  const mainInput = document.getElementById('mainImageInput');
+  const tagInput = document.getElementById('tagImageInput');
+  const dmgInput = document.getElementById('damageImageInput');
+
+  // 0.5秒ごとにファイル選択状態を強制スキャン（これで確実に緑に変わります）
+  setInterval(function() {
+    updateCard('cardMain', 'iconMain', 'textMain', mainInput, '①全体OK', '① 全体<br>未選択');
+    updateCard('cardTag', 'iconTag', 'textTag', tagInput, '②タグOK', '② タグ<br>未選択');
+    updateCard('cardDamage', 'iconDamage', 'textDamage', dmgInput, '③傷みOK', '③ ダメージ<br>なし');
+  }, 500);
+
+  function updateCard(cardId, iconId, textId, inputEl, okLabel, noLabel) {
     const card = document.getElementById(cardId);
     const icon = document.getElementById(iconId);
     const text = document.getElementById(textId);
@@ -339,20 +350,6 @@
       text.innerHTML = noLabel;
     }
   }
-
-  const mainInput = document.getElementById('mainImageInput');
-  const tagInput = document.getElementById('tagImageInput');
-  const dmgInput = document.getElementById('damageImageInput');
-
-  mainInput.addEventListener('change', function() {
-    updateStatus('cardMain', 'iconMain', 'textMain', mainInput, '①全体OK', '① 全体<br>未選択');
-  });
-  tagInput.addEventListener('change', function() {
-    updateStatus('cardTag', 'iconTag', 'textTag', tagInput, '②タグOK', '② タグ<br>未選択');
-  });
-  dmgInput.addEventListener('change', function() {
-    updateStatus('cardDamage', 'iconDamage', 'textDamage', dmgInput, '③傷みOK', '③ ダメージ<br>なし');
-  });
 
   function compressImage(file) {
     return new Promise(function(resolve, reject) {
@@ -398,7 +395,7 @@
     const hasDmg = dmgInput.files && dmgInput.files.length > 0;
 
     if (!hasMain && !hasTag) {
-      alert('「ファイルを選択」を押して、服の写真を選んでください！');
+      alert('「ファイルを選択」を押して服の写真を選んでください！');
       return;
     }
 
@@ -427,7 +424,6 @@
 
       log('🔍 Google AIが鑑定中...');
 
-      // 最新の安定モデルのみ指定（gemini-1.5エラーの完全対策）
       const candidateModels = ['gemini-2.5-flash', 'gemini-2.0-flash'];
       let resData = null;
       let lastError = '';
@@ -524,4 +520,11 @@
     if (box.style.display === 'none' || box.style.display === '') {
       box.style.display = 'block';
       btn.textContent = '🔼 出品テンプレートを閉じる';
-    } el
+    } else {
+      box.style.display = 'none';
+      btn.textContent = '📝 出品用タイトル＆説明文を表示';
+    }
+  });
+
+  function copyText(val, msg) {
+    if (!val)
