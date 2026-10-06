@@ -96,7 +96,7 @@
     <label>🔍 ③ ダメージ・汚れ（任意）：</label>
     <input type="file" id="damageImageInput" accept="image/*" class="file-input-box">
 
-    <label for="purchasePrice">🏷️️ 店舗の値札価格 / 仕入れ値（円）：</label>
+    <label for="purchasePrice">🏷️ 店舗の値札価格 / 仕入れ値（円）：</label>
     <input type="number" id="purchasePrice" value="0" inputmode="numeric">
 
     <div id="statusBox">状態：ボタンを押すと解析が始まります</div>
@@ -202,6 +202,10 @@
     document.getElementById('statusBox').textContent = '状態：' + msg;
   }
 
+  function wait(ms) {
+    return new Promise(r => setTimeout(r, ms));
+  }
+
   function fileToBase64(file) {
     return new Promise(function(resolve, reject) {
       const reader = new FileReader();
@@ -266,42 +270,49 @@
         parts.push({ inline_data: { mime_type: 'image/jpeg', data: b64 } });
       }
 
-      // 混雑時に順番に試すバックアップリスト
-      const tryModels = ['gemini-3.8-flash', 'gemini-3.8-flash-lite', 'gemini-2.5-flash'];
+      // 安定度が高い正式稼働中モデル一覧（順番にアタック）
+      const candidateModels = ['gemini-3.8-flash', 'gemini-3.5-flash-lite'];
       let resData = null;
       let lastErrMsg = '';
 
-      for (let m = 0; m < tryModels.length; m++) {
-        const modelName = tryModels[m];
-        log('🔍 ' + modelName + ' で鑑定中...');
+      for (let m = 0; m < candidateModels.length; m++) {
+        const modelName = candidateModels[m];
+        
+        // 各モデルで最大2回（リトライ含む）試行
+        for (let attempt = 1; attempt <= 2; attempt++) {
+          log('🔍 ' + modelName + ' で鑑定中' + (attempt > 1 ? ' (再試行中)...' : '...'));
 
-        try {
-          const resp = await fetch('https://generativelanguage.googleapis.com/v1beta/models/' + modelName + ':generateContent?key=' + key, {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({
-              contents: [{ parts: parts }],
-              generationConfig: { response_mime_type: 'application/json' }
-            })
-          });
+          try {
+            const resp = await fetch('https://generativelanguage.googleapis.com/v1beta/models/' + modelName + ':generateContent?key=' + key, {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({
+                contents: [{ parts: parts }],
+                generationConfig: { response_mime_type: 'application/json' }
+              })
+            });
 
-          const json = await resp.json();
-          if (json.error) {
-            lastErrMsg = json.error.message;
-            // 混雑(high demand)や制限なら次のモデルを即試す
-            continue;
+            const json = await resp.json();
+            if (json.error) {
+              lastErrMsg = json.error.message;
+              // 混雑(high demand)なら2秒待ってから次へ
+              await wait(2000);
+              continue;
+            }
+
+            if (json.candidates && json.candidates[0]) {
+              resData = JSON.parse(json.candidates[0].content.parts[0].text);
+              break;
+            }
+          } catch (err) {
+            lastErrMsg = err.message;
+            await wait(2000);
           }
-
-          if (json.candidates && json.candidates[0]) {
-            resData = JSON.parse(json.candidates[0].content.parts[0].text);
-            break; // 成功したらループを抜ける
-          }
-        } catch (err) {
-          lastErrMsg = err.message;
         }
+        if (resData) break;
       }
 
-      if (!resData) throw new Error(lastErrMsg || '現在AIサーバーが混み合っています。少し時間をおいてお試しください。');
+      if (!resData) throw new Error(lastErrMsg || '現在GoogleのAIサーバーが非常に混雑しています。1〜2分置いてから再度お試しください。');
 
       document.getElementById('resBrand').textContent = resData.brand || '不明';
       document.getElementById('resFeatures').textContent = resData.features || '-';
