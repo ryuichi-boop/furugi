@@ -206,31 +206,43 @@
     return new Promise(r => setTimeout(r, ms));
   }
 
-  function fileToBase64Fast(file) {
+  // スマホで絶対にエラー落ちしない安全なBase64変換
+  function fileToBase64Safe(file) {
     return new Promise(function(resolve, reject) {
       const reader = new FileReader();
       reader.onload = function(e) {
         const img = new Image();
         img.onload = function() {
-          const maxDim = 600;
-          let w = img.width;
-          let h = img.height;
-          if (w > h) {
-            if (w > maxDim) { h = Math.round(h * (maxDim / w)); w = maxDim; }
-          } else {
-            if (h > maxDim) { w = Math.round(h * (maxDim / h)); h = maxDim; }
+          try {
+            const canvas = document.createElement('canvas');
+            const maxDim = 800;
+            let w = img.width;
+            let h = img.height;
+            if (w > h) {
+              if (w > maxDim) { h = Math.round(h * (maxDim / w)); w = maxDim; }
+            } else {
+              if (h > maxDim) { w = Math.round(h * (maxDim / h)); h = maxDim; }
+            }
+            canvas.width = w;
+            canvas.height = h;
+            const ctx = canvas.getContext('2d');
+            ctx.drawImage(img, 0, 0, w, h);
+            const dataUrl = canvas.toDataURL('image/jpeg', 0.7);
+            resolve(dataUrl.split(',')[1]);
+          } catch(err) {
+            // 万が一canvasが失敗しても元ファイルをそのまま送る
+            resolve(e.target.result.split(',')[1]);
           }
-          const canvas = document.createElement('canvas');
-          canvas.width = w;
-          canvas.height = h;
-          const ctx = canvas.getContext('2d');
-          ctx.drawImage(img, 0, 0, w, h);
-          resolve(canvas.toDataURL('image/jpeg', 0.65).split(',')[1]);
         };
-        img.onerror = reject;
+        img.onerror = function() {
+          // 画像タグ展開失敗時もBase64を直接抽出
+          resolve(e.target.result.split(',')[1]);
+        };
         img.src = e.target.result;
       };
-      reader.onerror = reject;
+      reader.onerror = function() {
+        reject(new Error('画像の読み込みに失敗しました'));
+      };
       reader.readAsDataURL(file);
     });
   }
@@ -260,8 +272,6 @@
 
     try {
       const parts = [];
-      
-      // プロ古着物販の現実相場に厳格に合わせたプロンプト
       const prompt = `あなたは日本のフリマアプリ（メルカリ・ヤフオク・Yahoo!フリマ）で月100万円以上稼ぐ超現実主義のプロ古着バイヤーです。
 画像からブランドとアイテムを特定し、日本の直近の「リアルな売り切れ相場」をシビアに査定してください。
 
@@ -292,8 +302,8 @@
       parts.push({ text: prompt });
 
       for (let i = 0; i < files.length; i++) {
-        log('⚡ 高速圧縮中 (' + (i + 1) + '/' + files.length + ')...');
-        const b64 = await fileToBase64Fast(files[i]);
+        log('⏳ 画像準備中 (' + (i + 1) + '/' + files.length + ')...');
+        const b64 = await fileToBase64Safe(files[i]);
         parts.push({ inline_data: { mime_type: 'image/jpeg', data: b64 } });
       }
 
@@ -317,7 +327,7 @@
 
           const json = await resp.json();
           if (json.error) {
-            lastErrMsg = json.error.message;
+            lastErrMsg = json.error.message || JSON.stringify(json.error);
             await wait(1500);
             continue;
           }
@@ -327,12 +337,12 @@
             break;
           }
         } catch (err) {
-          lastErrMsg = err.message;
+          lastErrMsg = (err && err.message) ? err.message : String(err);
           await wait(1500);
         }
       }
 
-      if (!resData) throw new Error(lastErrMsg || '通信が不安定です。電波の良い場所でお試しください。');
+      if (!resData) throw new Error(lastErrMsg || '現在AIサーバーが混雑しています。少し時間をおいてお試しください。');
 
       document.getElementById('resBrand').textContent = resData.brand || '不明';
       document.getElementById('resFeatures').textContent = resData.features || '-';
@@ -388,8 +398,9 @@
       document.getElementById('resultCard').style.display = 'block';
       log('🎉 リサーチ完了！');
     } catch (err) {
-      log('❌ エラー: ' + err.message);
-      alert('エラー: ' + err.message);
+      const msg = (err && err.message) ? err.message : String(err);
+      log('❌ エラー: ' + msg);
+      alert('エラー: ' + msg);
     }
   };
 
