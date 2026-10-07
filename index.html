@@ -93,7 +93,7 @@
     <label>🏷️ ② 首元タグ・ブランドタグ（任意）：</label>
     <input type="file" id="tagImageInput" accept="image/*" class="file-input-box">
 
-    <label>🔍 ③ ダメージ・汚れ（任意）：</label>
+    <label>🔍 ③ ダメージ・汚れ・ディテール（任意）：</label>
     <input type="file" id="damageImageInput" accept="image/*" class="file-input-box">
 
     <label for="purchasePrice">🏷️ 店舗の値札価格 / 仕入れ値（円）：</label>
@@ -108,12 +108,12 @@
     <div id="judgeBox" class="judge-box">判定中...</div>
 
     <div class="result-item">
-      <div class="result-label">特定ブランド</div>
+      <div class="result-label">特定ブランド・年代鑑定</div>
       <div id="resBrand" class="result-val">-</div>
     </div>
     <div class="result-item">
-      <div class="result-label">アイテム / 特徴</div>
-      <div id="resFeatures" class="result-val" style="font-size: 1rem; font-weight: normal;">-</div>
+      <div class="result-label">アイテム / 特徴 / 査定理由</div>
+      <div id="resFeatures" class="result-val" style="font-size: 1rem; font-weight: normal; line-height: 1.5;">-</div>
     </div>
 
     <div style="margin: 16px 0 10px 0;">
@@ -206,7 +206,6 @@
     return new Promise(r => setTimeout(r, ms));
   }
 
-  // スマホで絶対にエラー落ちしない安全なBase64変換
   function fileToBase64Safe(file) {
     return new Promise(function(resolve, reject) {
       const reader = new FileReader();
@@ -227,15 +226,12 @@
             canvas.height = h;
             const ctx = canvas.getContext('2d');
             ctx.drawImage(img, 0, 0, w, h);
-            const dataUrl = canvas.toDataURL('image/jpeg', 0.7);
-            resolve(dataUrl.split(',')[1]);
+            resolve(canvas.toDataURL('image/jpeg', 0.7).split(',')[1]);
           } catch(err) {
-            // 万が一canvasが失敗しても元ファイルをそのまま送る
             resolve(e.target.result.split(',')[1]);
           }
         };
         img.onerror = function() {
-          // 画像タグ展開失敗時もBase64を直接抽出
           resolve(e.target.result.split(',')[1]);
         };
         img.src = e.target.result;
@@ -272,30 +268,43 @@
 
     try {
       const parts = [];
-      const prompt = `あなたは日本のフリマアプリ（メルカリ・ヤフオク・Yahoo!フリマ）で月100万円以上稼ぐ超現実主義のプロ古着バイヤーです。
-画像からブランドとアイテムを特定し、日本の直近の「リアルな売り切れ相場」をシビアに査定してください。
+      
+      // 全ブランド対応・古着鑑定フレームワークプロンプト
+      const prompt = `あなたは日本のフリマアプリ（メルカリ・ヤフオク・Yahoo!フリマ）で月商300万円を稼ぐ超一流のプロ古着バイヤー・鑑定士です。
+提供された画像（全体、タグ、ディテール、ダメージ）を詳細に鑑定し、以下の【古着市場価格査定フレームワーク】に従って直近のリアルな売れ筋相場を出してください。
 
-【査定基準ルール（重要）】
-1. H&M, ZARA, UNIQLO, GU, GAP, 無印良品などのファストファッションやノーブランドは、どんなに状態が良くても相場は「500円〜1,500円」程度です。絶対に過大評価しないでください。
-2. 一般スポーツ（アンダーアーマー、アディダス通常品等）や通常カジュアルブランドは「1,500円〜3,500円」程度です。
-3. 高値（5,000円以上）が付くのは、有名ヴィンテージ、人気ストリート（Stussy, Supreme等）、アウトドア上位（Patagonia, Arc'teryx, The North Face等）、高級デザイナーズのみです。
-4. 想定送料(shipping_fee)はアイテムの厚みで判断してください：
-   - Tシャツ、薄手シャツ、小物: 215 (ゆうパケットポスト等)
-   - スウェット、薄手ニット、パンツ: 450〜520 (宅急便コンパクト等)
-   - ヘビーパーカー、中綿アウター、重厚コート: 750〜850 (宅急便60〜80サイズ)
+【古着市場価格査定フレームワーク】
+1. 基本格付け（レギュラー品の場合）:
+   - ファストファッション・量産（UNIQLO, GU, H&M, ZARA, 無印, 通常GAP等）: 500〜1,500円（通常仕入れ対象外）
+   - 一般スポーツ・日常カジュアル（通常Nike, 通常Adidas, 通常Champion, アンダーアーマー等）: 1,500〜3,500円
+   - 定番人気・アメカジ・アウトドア（通常Ralph Lauren, 通常Carhartt, Patagonia, The North Face等）: 3,500〜8,000円
+   - ハイエンド・人気ストリート（Arc'teryx, Supreme, Stussy, デザイナーズブランド等）: 8,000円〜数万円
+
+2. 【超重要】価値跳ね上がり特例（アップサイド・トリガー）:
+   通常安価なブランドやレギュラー品であっても、以下の特徴を検知した場合は格付けを大幅に引き上げ、高額査定枠として相場を算出してください。
+   - 【年代・オールドタグ】オールドGAP（白タグ・紺タグ）、Nike銀タグ/紺タグ/風車、Championトリコタグ/刺繍タグ、Adidas万国旗/ATP、Levi's赤耳/USA製など、80s〜90sヴィンテージ要素がある場合
+   - 【生産国】「Made in USA（アメリカ製）」の表記がある場合
+   - 【素材・仕様】本革（リアルレザー）、ダック地、ヘビーコットン、アノラックパーカー、GORE-TEX、肉厚シンチラフリース等
+   - 【人気モチーフ・型番】リバースウィーブ、開襟/オープンカラーシャツ（CALDWELL等）、企業モノ刺繍、有名バンドT/映画T/アニメT
+   ※もしオールドGAPなどプレ値品と判明した場合は、ブランド名欄に必ず「オールドGAP（90s）」のように明記してください。
+
+3. 送料判定（アイテム形状別）:
+   - Tシャツ、薄手シャツ、薄手小物: 215円（ゆうパケットポスト）
+   - パンツ、スウェット、薄手ニット: 450〜520円（宅急便コンパクト/専用箱）
+   - ヘビーパーカー、中綿アウター、重厚ジャケット: 750〜850円（宅急便60〜80サイズ）
 
 回答は以下のJSON形式のみを出力してください：
 {
-  "brand": "ブランド名",
-  "features": "アイテム名、色、特徴",
+  "brand": "ブランド名（オールド判明時は「オールドGAP」「90s Nike」等と明記）",
+  "features": "アイテム名、年代、素材、特徴、査定理由（例: 90s白タグ付きオールドGAPのため高額枠）",
   "shipping_fee": 215,
-  "search_keyword": "メルカリで売れ行きを調べるための3語程度（例: H&M Tシャツ ヤシの木）",
+  "search_keyword": "メルカリ売り切れ検索用の的確なワード3〜4語（例: オールドGAP 90s レザージャケット）",
   "mercari": {"min_price": 0, "max_price": 0},
   "yahooflea": {"min_price": 0, "max_price": 0},
   "yahooauc": {"min_price": 0, "max_price": 0},
   "listing_template": {
-    "title": "SEOに強いメルカリ向け商品タイトル（ブランド・サイズ・特徴入り）",
-    "description": "丁寧な出品説明文（状態、採寸目安プレースホルダー含む）"
+    "title": "SEOに強いメルカリ向け商品タイトル（ブランド・年代・特徴・サイズ）",
+    "description": "丁寧な出品説明文（特徴、状態、採寸プレースホルダー）"
   }
 }`;
 
@@ -313,7 +322,7 @@
 
       for (let m = 0; m < candidateModels.length; m++) {
         const modelName = candidateModels[m];
-        log('🔍 ' + modelName + ' でリアル相場を鑑定中...');
+        log('🔍 ' + modelName + ' でプロ鑑定中...');
 
         try {
           const resp = await fetch('https://generativelanguage.googleapis.com/v1beta/models/' + modelName + ':generateContent?key=' + key, {
