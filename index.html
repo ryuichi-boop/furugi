@@ -13,16 +13,33 @@
     label { font-size: 0.9rem; font-weight: bold; color: #94a3b8; display: block; margin-bottom: 6px; }
     input[type="text"], input[type="number"], input[type="password"] { width: 100%; padding: 12px; border-radius: 8px; border: 1px solid #475569; background: #0f172a; color: #fff; font-size: 1rem; margin-bottom: 8px; }
     
+    .file-row {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      margin-bottom: 12px;
+    }
+
     .file-input-box {
-      width: 100%;
-      padding: 12px;
+      flex: 1;
+      padding: 10px;
       background: #1e3a8a;
       border: 2px dashed #38bdf8;
       border-radius: 8px;
       color: #fff;
-      font-size: 0.9rem;
-      margin-bottom: 12px;
-      display: block;
+      font-size: 0.85rem;
+    }
+
+    .clear-btn {
+      background: #ef4444;
+      color: #fff;
+      border: none;
+      padding: 10px 14px;
+      border-radius: 8px;
+      font-weight: bold;
+      font-size: 0.85rem;
+      cursor: pointer;
+      white-space: nowrap;
     }
 
     #statusBox {
@@ -88,13 +105,22 @@
 
   <div class="card">
     <label>📸 ① 服の全体写真（必須）：</label>
-    <input type="file" id="mainImageInput" accept="image/*" class="file-input-box">
+    <div class="file-row">
+      <input type="file" id="mainImageInput" accept="image/*" class="file-input-box">
+      <button type="button" class="clear-btn" onclick="clearFile('mainImageInput')">✕ 取消</button>
+    </div>
 
     <label>🏷️ ② 首元タグ・ブランドタグ（任意）：</label>
-    <input type="file" id="tagImageInput" accept="image/*" class="file-input-box">
+    <div class="file-row">
+      <input type="file" id="tagImageInput" accept="image/*" class="file-input-box">
+      <button type="button" class="clear-btn" onclick="clearFile('tagImageInput')">✕ 取消</button>
+    </div>
 
     <label>🔍 ③ ダメージ・汚れ・ディテール（任意）：</label>
-    <input type="file" id="damageImageInput" accept="image/*" class="file-input-box">
+    <div class="file-row">
+      <input type="file" id="damageImageInput" accept="image/*" class="file-input-box">
+      <button type="button" class="clear-btn" onclick="clearFile('damageImageInput')">✕ 取消</button>
+    </div>
 
     <label for="purchasePrice">🏷️ 店舗の値札価格 / 仕入れ値（円）：</label>
     <input type="number" id="purchasePrice" value="0" inputmode="numeric">
@@ -198,6 +224,12 @@
     localStorage.setItem('furugi_gemini_api_key', apiKeyInput.value.trim());
   });
 
+  // 写真の個別取り消し関数
+  function clearFile(inputId) {
+    const input = document.getElementById(inputId);
+    input.value = '';
+  }
+
   function log(msg) {
     document.getElementById('statusBox').textContent = '状態：' + msg;
   }
@@ -268,8 +300,6 @@
 
     try {
       const parts = [];
-      
-      // 全ブランド対応・古着鑑定フレームワークプロンプト
       const prompt = `あなたは日本のフリマアプリ（メルカリ・ヤフオク・Yahoo!フリマ）で月商300万円を稼ぐ超一流のプロ古着バイヤー・鑑定士です。
 提供された画像（全体、タグ、ディテール、ダメージ）を詳細に鑑定し、以下の【古着市場価格査定フレームワーク】に従って直近のリアルな売れ筋相場を出してください。
 
