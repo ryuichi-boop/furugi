@@ -11,7 +11,7 @@
     h1 { font-size: 1.35rem; font-weight: bold; margin-bottom: 14px; text-align: center; color: #38bdf8; }
     .card { background: #1e293b; border-radius: 12px; padding: 16px; margin-bottom: 14px; border: 1px solid #334155; }
     label { font-size: 0.9rem; font-weight: bold; color: #94a3b8; display: block; margin-bottom: 6px; }
-    input[type="text"], input[type="number"], input[type="password"] { width: 100%; padding: 12px; border-radius: 8px; border: 1px solid #475569; background: #0f172a; color: #fff; font-size: 1rem; margin-bottom: 8px; }
+    input[type="text"], input[type="number"], input[type="password"], select { width: 100%; padding: 12px; border-radius: 8px; border: 1px solid #475569; background: #0f172a; color: #fff; font-size: 1rem; margin-bottom: 8px; }
     
     .file-row {
       display: flex;
@@ -90,7 +90,7 @@
     .sub-btn { display: block; width: 100%; text-align: center; background: #334155; color: #fff; border: 1px solid #64748b; padding: 12px; border-radius: 8px; font-size: 0.95rem; font-weight: bold; cursor: pointer; margin-top: 8px; }
 
     .template-box { display: none; margin-top: 12px; background: #090d16; border: 1px solid #4338ca; border-radius: 8px; padding: 12px; }
-    .template-textarea { width: 100%; height: 200px; background: #1e293b; border: 1px solid #475569; border-radius: 6px; color: #fff; padding: 10px; font-size: 0.9rem; line-height: 1.5; margin: 6px 0; }
+    .template-textarea { width: 100%; height: 220px; background: #1e293b; border: 1px solid #475569; border-radius: 6px; color: #fff; padding: 10px; font-size: 0.9rem; line-height: 1.5; margin: 6px 0; }
   </style>
 </head>
 <body>
@@ -124,6 +124,13 @@
 
     <label for="purchasePrice">🏷️ 店舗の値札価格 / 仕入れ値（円）：</label>
     <input type="number" id="purchasePrice" value="0" inputmode="numeric">
+
+    <label for="toneSelect">✍️ 出品説明文の文体（トーン）：</label>
+    <select id="toneSelect">
+      <option value="丁寧・標準（メルカリ等で使いやすい親切・丁寧な文体）">1. 丁寧・標準（誰にでも好印象）</option>
+      <option value="アメカジ・古着好き向け（ヴィンテージ感、雰囲気、ディテールや経年変化の良さを強調した魅力的な文体）">2. アメカジ・古着好き向け（こだわり重視）</option>
+      <option value="簡潔・スピード重視（要点やスペックのみを箇条書き中心でスッキリまとめた文体）">3. 簡潔・スピード重視（シンプル）</option>
+    </select>
 
     <div id="statusBox">状態：ボタンを押すと解析が始まります</div>
     
@@ -224,7 +231,6 @@
     localStorage.setItem('furugi_gemini_api_key', apiKeyInput.value.trim());
   });
 
-  // 写真の個別取り消し関数
   function clearFile(inputId) {
     const input = document.getElementById(inputId);
     input.value = '';
@@ -258,7 +264,8 @@
             canvas.height = h;
             const ctx = canvas.getContext('2d');
             ctx.drawImage(img, 0, 0, w, h);
-            resolve(canvas.toDataURL('image/jpeg', 0.7).split(',')[1]);
+            const dataUrl = canvas.toDataURL('image/jpeg', 0.7);
+            resolve(dataUrl.split(',')[1]);
           } catch(err) {
             resolve(e.target.result.split(',')[1]);
           }
@@ -296,6 +303,7 @@
       return;
     }
 
+    const selectedTone = document.getElementById('toneSelect').value;
     document.getElementById('resultCard').style.display = 'none';
 
     try {
@@ -323,6 +331,10 @@
    - パンツ、スウェット、薄手ニット: 450〜520円（宅急便コンパクト/専用箱）
    - ヘビーパーカー、中綿アウター、重厚ジャケット: 750〜850円（宅急便60〜80サイズ）
 
+4. 出品説明文のトーン指示（必須）:
+   商品説明文は、ユーザーが指定した以下のトーンで作成してください：
+   【指定トーン: ${selectedTone}】
+
 回答は以下のJSON形式のみを出力してください：
 {
   "brand": "ブランド名（オールド判明時は「オールドGAP」「90s Nike」等と明記）",
@@ -334,7 +346,7 @@
   "yahooauc": {"min_price": 0, "max_price": 0},
   "listing_template": {
     "title": "SEOに強いメルカリ向け商品タイトル（ブランド・年代・特徴・サイズ）",
-    "description": "丁寧な出品説明文（特徴、状態、採寸プレースホルダー）"
+    "description": "指定されたトーンで書かれた商品説明文（特徴、状態、採寸プレースホルダー）"
   }
 }`;
 
