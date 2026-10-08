@@ -13,34 +13,9 @@
     label { font-size: 0.9rem; font-weight: bold; color: #94a3b8; display: block; margin-bottom: 6px; }
     input[type="text"], input[type="number"], input[type="password"], select { width: 100%; padding: 12px; border-radius: 8px; border: 1px solid #475569; background: #0f172a; color: #fff; font-size: 1rem; margin-bottom: 8px; }
     
-    .file-row {
-      display: flex;
-      align-items: center;
-      gap: 8px;
-      margin-bottom: 12px;
-    }
-
-    .file-input-box {
-      flex: 1;
-      padding: 10px;
-      background: #1e3a8a;
-      border: 2px dashed #38bdf8;
-      border-radius: 8px;
-      color: #fff;
-      font-size: 0.85rem;
-    }
-
-    .clear-btn {
-      background: #ef4444;
-      color: #fff;
-      border: none;
-      padding: 10px 14px;
-      border-radius: 8px;
-      font-weight: bold;
-      font-size: 0.85rem;
-      cursor: pointer;
-      white-space: nowrap;
-    }
+    .file-row { display: flex; align-items: center; gap: 8px; margin-bottom: 12px; }
+    .file-input-box { flex: 1; padding: 10px; background: #1e3a8a; border: 2px dashed #38bdf8; border-radius: 8px; color: #fff; font-size: 0.85rem; }
+    .clear-btn { background: #ef4444; color: #fff; border: none; padding: 10px 14px; border-radius: 8px; font-weight: bold; font-size: 0.85rem; cursor: pointer; white-space: nowrap; }
 
     #statusBox {
       background: #000;
@@ -56,14 +31,7 @@
 
     .action-btn { width: 100%; background: #0284c7; color: #fff; border: none; padding: 16px; border-radius: 8px; font-size: 1.15rem; font-weight: bold; cursor: pointer; }
     
-    .judge-box {
-      border-radius: 10px;
-      padding: 12px;
-      text-align: center;
-      margin-bottom: 14px;
-      font-weight: 900;
-      font-size: 1.2rem;
-    }
+    .judge-box { border-radius: 10px; padding: 12px; text-align: center; margin-bottom: 14px; font-weight: 900; font-size: 1.2rem; }
     .judge-go { background: #065f46; color: #6ee7b7; border: 2px solid #10b981; }
     .judge-consider { background: #854d0e; color: #fde047; border: 2px solid #eab308; }
     .judge-stay { background: #991b1b; color: #fca5a5; border: 2px solid #ef4444; }
@@ -148,7 +116,8 @@
 
     <div id="statusBox">状態：ボタンを押すと解析が始まります</div>
     
-    <button id="analyzeBtn" class="action-btn" type="button">🚀 AI相場解析スタート</button>
+    <!-- onclickを直接属性に定義して取りこぼしを完全防止 -->
+    <button id="analyzeBtn" class="action-btn" type="button" onclick="startAnalysis()">🚀 AI相場解析スタート</button>
   </div>
 
   <div id="resultCard" class="card result-box">
@@ -236,8 +205,8 @@
     </div>
 
     <div class="save-btn-group">
-      <button id="saveSheetsBtn" class="save-sheets-btn" type="button">📗 Googleスプレッドシートに保存</button>
-      <button id="saveHistoryBtn" class="save-history-btn" type="button">📱 スマホ端末内に保存</button>
+      <button id="saveSheetsBtn" class="save-sheets-btn" type="button" onclick="saveToSheets()">📗 Googleスプレッドシートに保存</button>
+      <button id="saveHistoryBtn" class="save-history-btn" type="button" onclick="saveToLocalHistory()">📱 スマホ端末内に保存</button>
     </div>
   </div>
 
@@ -264,12 +233,13 @@
   });
 
   function clearFile(inputId) {
-    const input = document.getElementById(inputId);
-    input.value = '';
+    const el = document.getElementById(inputId);
+    if (el) el.value = '';
   }
 
   function log(msg) {
-    document.getElementById('statusBox').textContent = '状態：' + msg;
+    const sb = document.getElementById('statusBox');
+    if (sb) sb.textContent = '状態：' + msg;
   }
 
   function wait(ms) {
@@ -302,14 +272,10 @@
             resolve(e.target.result.split(',')[1]);
           }
         };
-        img.onerror = function() {
-          resolve(e.target.result.split(',')[1]);
-        };
+        img.onerror = function() { resolve(e.target.result.split(',')[1]); };
         img.src = e.target.result;
       };
-      reader.onerror = function() {
-        reject(new Error('画像の読み込みに失敗しました'));
-      };
+      reader.onerror = function() { reject(new Error('画像の読み込み失敗')); };
       reader.readAsDataURL(file);
     });
   }
@@ -344,21 +310,18 @@
         };
         reader.onerror = function() { resolve(''); };
         reader.readAsDataURL(file);
-      } catch(e) {
-        resolve('');
-      }
+      } catch(e) { resolve(''); }
     });
   }
 
   let currentAnalysisSnapshot = null;
 
-  document.getElementById('analyzeBtn').onclick = async function() {
+  async function startAnalysis() {
     log('▶️ 開始準備中...');
-
     const key = apiKeyInput.value.trim();
     if (!key) {
       alert('Gemini APIキーを入力してください');
-      log('キー未入力');
+      log('APIキーが未入力です');
       return;
     }
 
@@ -373,7 +336,7 @@
 
     if (files.length === 0) {
       alert('写真が選択されていません。「ファイルを選択」から服の写真を選んでください。');
-      log('写真未選択');
+      log('写真が未選択です');
       return;
     }
 
@@ -434,10 +397,10 @@
         }
       }
 
-      log('⏳ サムネイル処理中...');
+      log('⏳ サムネイル作成中...');
       const thumbData = await makeThumbnail(files[0]);
 
-      // 安定している公式モデルのリスト
+      // 安定している公式モデル
       const candidateModels = ['gemini-2.5-flash', 'gemini-1.5-flash', 'gemini-2.0-flash'];
       let resData = null;
       let lastErrMsg = '';
@@ -475,3 +438,5 @@
 
       if (!resData) throw new Error(lastErrMsg || '現在AIサーバーが混雑しています。少し時間をおいてお試しください。');
 
+      document.getElementById('resBrand').textContent = resData.brand || '不明';
+      document.getElemen
