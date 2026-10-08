@@ -222,7 +222,8 @@
 </div>
 
 <script>
-  const GAS_ENDPOINT_URL = 'https://script.google.com/macros/s/AKfycbytbk5hXmZe8d0Ey0XUpLPM7K_8dGNis1LYnPUlJBIpSlqWjustnuojCzaJZqGiPZMq/exec';
+  // お使いのGASエンドポイントURL
+  const GAS_ENDPOINT_URL = 'https://script.google.com/macros/s/AKfycbwCudTA-4Iv5PX7msBtFLkHW3ohBtKz_plmG4pqMJPZemIIBO7kVnmfsIOsZJbHE-eMRQ/exec';
 
   const apiKeyInput = document.getElementById('apiKey');
   const savedKey = localStorage.getItem('furugi_gemini_api_key');
@@ -358,7 +359,8 @@
         }
       }
 
-      const candidateModels = ['gemini-3.8-flash', 'gemini-3.5-flash-lite', 'gemini-2.5-flash'];
+      // 指示通りの本命モデル（gemini-3.8-flash を最優先）
+      const candidateModels = ['gemini-3.8-flash', 'gemini-3.5-flash-lite'];
       let resData = null;
       let lastErrMsg = '';
 
@@ -393,7 +395,7 @@
         }
       }
 
-      if (!resData) throw new Error(lastErrMsg || '現在AIサーバーが混雑しています。少し時間をおいてお試しください。');
+      if (!resData) throw new Error(lastErrMsg || 'AIサーバーからの応答がありませんでした');
 
       document.getElementById('resBrand').textContent = resData.brand || '不明';
       document.getElementById('resFeatures').textContent = resData.features || '-';
@@ -446,14 +448,13 @@
       document.getElementById('templateTitle').value = titleVal;
       document.getElementById('templateDescription').value = descVal;
 
-      // エラー回避のため、利益の表記を「¥1,000 〜 ¥2,000」の安全な形式に統一
       currentAnalysisSnapshot = {
         id: Date.now(),
         date: new Date().toLocaleString('ja-JP', { month: 'numeric', day: 'numeric', hour: '2-digit', minute: '2-digit' }),
         brand: resData.brand || '不明',
         features: resData.features || '-',
         purchasePrice: cost,
-        profitRange: '¥' + mProf.minProf.toLocaleString() + ' 〜 ¥' + mProf.maxProf.toLocaleString(),
+        profitRange: (mProf.minProf >= 0 ? '+¥' : '-¥') + Math.abs(mProf.minProf).toLocaleString() + ' 〜 ' + (mProf.maxProf >= 0 ? '+¥' : '-¥') + Math.abs(mProf.maxProf).toLocaleString(),
         title: titleVal,
         description: descVal
       };
@@ -488,7 +489,7 @@
     btn.disabled = true;
     btn.textContent = '⏳ 送信中...';
 
-    // 先頭にシングルクォーテーションを付けて送信し、スプレッドシートのエラーを完全防止
+    // 先頭にシングルクォーテーションを付けて送信し、#ERROR! を完全防止
     const payload = {
       date: currentAnalysisSnapshot.date,
       brand: currentAnalysisSnapshot.brand,
