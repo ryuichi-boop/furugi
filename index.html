@@ -17,6 +17,8 @@
     .file-input-box { flex: 1; padding: 10px; background: #1e3a8a; border: 2px dashed #38bdf8; border-radius: 8px; color: #fff; font-size: 0.85rem; }
     .clear-btn { background: #ef4444; color: #fff; border: none; padding: 10px 14px; border-radius: 8px; font-weight: bold; font-size: 0.85rem; cursor: pointer; white-space: nowrap; }
 
+    #errorBanner { display: none; background: #dc2626; color: #fff; padding: 12px; border-radius: 8px; margin-bottom: 14px; font-size: 0.85rem; font-weight: bold; word-break: break-all; }
+
     #statusBox {
       background: #000;
       border: 1px solid #475569;
@@ -80,6 +82,8 @@
 <div class="container">
   <h1>👕 古着AIリサーチ＆出品 PRO</h1>
 
+  <div id="errorBanner"></div>
+
   <div class="card">
     <label for="apiKey">Gemini APIキー（端末内に自動保存）</label>
     <input type="password" id="apiKey" placeholder="AIキーを入力">
@@ -116,8 +120,7 @@
 
     <div id="statusBox">状態：ボタンを押すと解析が始まります</div>
     
-    <!-- onclickを直接属性に定義して取りこぼしを完全防止 -->
-    <button id="analyzeBtn" class="action-btn" type="button" onclick="startAnalysis()">🚀 AI相場解析スタート</button>
+    <button id="analyzeBtn" class="action-btn" type="button">🚀 AI相場解析スタート</button>
   </div>
 
   <div id="resultCard" class="card result-box">
@@ -205,8 +208,8 @@
     </div>
 
     <div class="save-btn-group">
-      <button id="saveSheetsBtn" class="save-sheets-btn" type="button" onclick="saveToSheets()">📗 Googleスプレッドシートに保存</button>
-      <button id="saveHistoryBtn" class="save-history-btn" type="button" onclick="saveToLocalHistory()">📱 スマホ端末内に保存</button>
+      <button id="saveSheetsBtn" class="save-sheets-btn" type="button">📗 Googleスプレッドシートに保存</button>
+      <button id="saveHistoryBtn" class="save-history-btn" type="button">📱 スマホ端末内に保存</button>
     </div>
   </div>
 
@@ -223,6 +226,16 @@
 </div>
 
 <script>
+  // グローバルエラー監視（エラーがあれば画面最上部に赤色で表示）
+  window.onerror = function(msg, url, line) {
+    const banner = document.getElementById('errorBanner');
+    if (banner) {
+      banner.style.display = 'block';
+      banner.textContent = '⚠️ スクリプトエラー: ' + msg + ' (行: ' + line + ')';
+    }
+    return false;
+  };
+
   const GAS_ENDPOINT_URL = 'https://script.google.com/macros/s/AKfycbwCudTA-4Iv5PX7msBtFLkHW3ohBtKz_plmG4pqMJPZemIIBO7kVnmfsIOsZJbHE-eMRQ/exec';
 
   const apiKeyInput = document.getElementById('apiKey');
@@ -316,8 +329,9 @@
 
   let currentAnalysisSnapshot = null;
 
-  async function startAnalysis() {
+  async function handleAnalysis() {
     log('▶️ 開始準備中...');
+
     const key = apiKeyInput.value.trim();
     if (!key) {
       alert('Gemini APIキーを入力してください');
@@ -400,7 +414,6 @@
       log('⏳ サムネイル作成中...');
       const thumbData = await makeThumbnail(files[0]);
 
-      // 安定している公式モデル
       const candidateModels = ['gemini-2.5-flash', 'gemini-1.5-flash', 'gemini-2.0-flash'];
       let resData = null;
       let lastErrMsg = '';
@@ -427,16 +440,4 @@
           }
 
           if (json.candidates && json.candidates[0] && json.candidates[0].content && json.candidates[0].content.parts[0]) {
-            resData = JSON.parse(json.candidates[0].content.parts[0].text);
-            break;
-          }
-        } catch (err) {
-          lastErrMsg = (err && err.message) ? err.message : String(err);
-          await wait(1000);
-        }
-      }
-
-      if (!resData) throw new Error(lastErrMsg || '現在AIサーバーが混雑しています。少し時間をおいてお試しください。');
-
-      document.getElementById('resBrand').textContent = resData.brand || '不明';
-      document.getElemen
+            resData = JSON.parse(json.candidates[0].content.part
