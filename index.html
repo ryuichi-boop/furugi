@@ -62,12 +62,17 @@
 
     .save-history-btn { background: #0284c7; color: #fff; border: none; padding: 15px; border-radius: 8px; font-size: 1.1rem; font-weight: bold; cursor: pointer; width: 100%; margin-top: 14px; }
 
-    .history-card { background: #0f172a; border: 1px solid #334155; border-radius: 8px; padding: 12px; margin-bottom: 12px; display: flex; gap: 12px; align-items: flex-start; }
-    .history-info { flex: 1; font-size: 0.85rem; }
-    .history-title { font-weight: bold; color: #38bdf8; font-size: 0.95rem; margin-bottom: 4px; }
-    .history-date { color: #64748b; font-size: 0.75rem; margin-bottom: 4px; }
-    .history-actions { display: flex; gap: 6px; margin-top: 8px; }
-    .history-sm-btn { padding: 6px 10px; border-radius: 6px; font-size: 0.75rem; font-weight: bold; border: none; cursor: pointer; }
+    .history-card { background: #0f172a; border: 1px solid #334155; border-radius: 8px; padding: 12px; margin-bottom: 12px; }
+    .history-info { font-size: 0.85rem; }
+    .history-title { font-weight: bold; color: #38bdf8; font-size: 1rem; margin-bottom: 4px; }
+    .history-date { color: #64748b; font-size: 0.75rem; margin-bottom: 6px; }
+    
+    .history-profit-grid { background: #1e293b; border-radius: 6px; padding: 8px 10px; margin: 6px 0; font-size: 0.85rem; }
+    .history-profit-row { display: flex; justify-content: space-between; margin-bottom: 3px; }
+    .history-profit-row:last-child { margin-bottom: 0; }
+
+    .history-actions { display: flex; gap: 8px; margin-top: 10px; }
+    .history-sm-btn { flex: 1; padding: 9px; border-radius: 6px; font-size: 0.85rem; font-weight: bold; border: none; cursor: pointer; text-align: center; }
     .btn-del { background: #ef4444; color: #fff; }
     .btn-copy-desc { background: #4f46e5; color: #fff; }
   </style>
@@ -349,6 +354,7 @@
         }
       }
 
+      // 指示通りの本命モデル（gemini-3.8-flash を最優先）
       const candidateModels = ['gemini-3.8-flash', 'gemini-3.5-flash-lite'];
       let resData = null;
       let lastErrMsg = '';
@@ -403,14 +409,15 @@
         const fmt = function(v) { return (v >= 0 ? '+¥' : '-¥') + Math.abs(v).toLocaleString(); };
 
         const el = document.getElementById(pId);
-        el.textContent = fmt(minProf) + ' 〜 ' + fmt(maxProf);
+        const profitStr = fmt(minProf) + ' 〜 ' + fmt(maxProf);
+        el.textContent = profitStr;
         el.style.color = minProf >= 0 ? '#38bdf8' : (maxProf > 0 ? '#fde68a' : '#f87171');
-        return { minProf, maxProf };
+        return { minProf, maxProf, profitStr };
       }
 
       const mProf = renderMarket('mercariRange', 'mercariShip', 'mercariProfit', resData.mercari, 0.10);
-      renderMarket('yahoofleaRange', 'yahoofleaShip', 'yahoofleaProfit', resData.yahooflea, 0.05);
-      renderMarket('yahooaucRange', 'yahooaucShip', 'yahooaucProfit', resData.yahooauc, 0.10);
+      const yFleaProf = renderMarket('yahoofleaRange', 'yahoofleaShip', 'yahoofleaProfit', resData.yahooflea, 0.05);
+      const yAucProf = renderMarket('yahooaucRange', 'yahooaucShip', 'yahooaucProfit', resData.yahooauc, 0.10);
 
       const jBox = document.getElementById('judgeBox');
       if (mProf.minProf >= 2500) {
@@ -437,13 +444,16 @@
       document.getElementById('templateTitle').value = titleVal;
       document.getElementById('templateDescription').value = descVal;
 
+      // 3サイトすべての純利益データを保存オブジェクトに保持
       currentAnalysisSnapshot = {
         id: Date.now(),
         date: new Date().toLocaleString('ja-JP', { month: 'numeric', day: 'numeric', hour: '2-digit', minute: '2-digit' }),
         brand: resData.brand || '不明',
         features: resData.features || '-',
         purchasePrice: cost,
-        profitRange: (mProf.minProf >= 0 ? '+¥' : '-¥') + Math.abs(mProf.minProf).toLocaleString() + ' 〜 ' + (mProf.maxProf >= 0 ? '+¥' : '-¥') + Math.abs(mProf.maxProf).toLocaleString(),
+        profitMercari: mProf.profitStr,
+        profitYFlea: yFleaProf.profitStr,
+        profitYAuc: yAucProf.profitStr,
         title: titleVal,
         description: descVal
       };
@@ -498,15 +508,35 @@
 
     let html = '';
     list.forEach(function(item) {
+      // 以前の保存データ（メルカリのみ）との後方互換対応
+      const pMercari = item.profitMercari || item.profitRange || '-';
+      const pYFlea = item.profitYFlea || '-';
+      const pYAuc = item.profitYAuc || '-';
+
       html += `
         <div class="history-card" id="hist-${item.id}">
           <div class="history-info">
             <div class="history-date">${item.date}</div>
             <div class="history-title">${item.brand}</div>
-            <div style="color: #cbd5e1; margin-bottom: 2px;">仕入値: ¥${Number(item.purchasePrice || 0).toLocaleString()}</div>
-            <div style="color: #38bdf8; font-weight: bold; margin-bottom: 4px;">純利益: ${item.profitRange}</div>
+            <div style="color: #cbd5e1; margin-bottom: 6px;">仕入値: ¥${Number(item.purchasePrice || 0).toLocaleString()}</div>
+            
+            <div class="history-profit-grid">
+              <div class="history-profit-row">
+                <span style="color: #fb923c;">🔴 メルカリ:</span>
+                <span style="font-weight: bold; color: #38bdf8;">${pMercari}</span>
+              </div>
+              <div class="history-profit-row">
+                <span style="color: #f472b6;">🟣 Y!フリマ:</span>
+                <span style="font-weight: bold; color: #38bdf8;">${pYFlea}</span>
+              </div>
+              <div class="history-profit-row">
+                <span style="color: #facc15;">🔨 ヤフオク:</span>
+                <span style="font-weight: bold; color: #38bdf8;">${pYAuc}</span>
+              </div>
+            </div>
+
             <div class="history-actions">
-              <button class="history-sm-btn btn-copy-desc" onclick="copyHistoryDesc(${item.id})">📋 説明文</button>
+              <button class="history-sm-btn btn-copy-desc" onclick="copyHistoryDesc(${item.id})">📋 説明文コピー</button>
               <button class="history-sm-btn btn-del" onclick="deleteHistoryItem(${item.id})">🗑️ 削除</button>
             </div>
           </div>
