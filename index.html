@@ -17,8 +17,6 @@
     .file-input-box { flex: 1; padding: 10px; background: #1e3a8a; border: 2px dashed #38bdf8; border-radius: 8px; color: #fff; font-size: 0.85rem; }
     .clear-btn { background: #ef4444; color: #fff; border: none; padding: 10px 14px; border-radius: 8px; font-weight: bold; font-size: 0.85rem; cursor: pointer; white-space: nowrap; }
 
-    #errorBanner { display: none; background: #dc2626; color: #fff; padding: 12px; border-radius: 8px; margin-bottom: 14px; font-size: 0.85rem; font-weight: bold; word-break: break-all; }
-
     #statusBox {
       background: #000;
       border: 1px solid #475569;
@@ -82,8 +80,6 @@
 <div class="container">
   <h1>👕 古着AIリサーチ＆出品 PRO</h1>
 
-  <div id="errorBanner"></div>
-
   <div class="card">
     <label for="apiKey">Gemini APIキー（端末内に自動保存）</label>
     <input type="password" id="apiKey" placeholder="AIキーを入力">
@@ -93,19 +89,19 @@
     <label>📸 ① 服の全体写真（必須）：</label>
     <div class="file-row">
       <input type="file" id="mainImageInput" accept="image/*" class="file-input-box">
-      <button type="button" class="clear-btn" onclick="clearFile('mainImageInput')">✕ 取消</button>
+      <button type="button" class="clear-btn" onclick="document.getElementById('mainImageInput').value=''">✕ 取消</button>
     </div>
 
     <label>🏷️ ② 首元タグ・ブランドタグ（任意）：</label>
     <div class="file-row">
       <input type="file" id="tagImageInput" accept="image/*" class="file-input-box">
-      <button type="button" class="clear-btn" onclick="clearFile('tagImageInput')">✕ 取消</button>
+      <button type="button" class="clear-btn" onclick="document.getElementById('tagImageInput').value=''">✕ 取消</button>
     </div>
 
     <label>🔍 ③ ダメージ・汚れ・ディテール（任意）：</label>
     <div class="file-row">
       <input type="file" id="damageImageInput" accept="image/*" class="file-input-box">
-      <button type="button" class="clear-btn" onclick="clearFile('damageImageInput')">✕ 取消</button>
+      <button type="button" class="clear-btn" onclick="document.getElementById('damageImageInput').value=''">✕ 取消</button>
     </div>
 
     <label for="purchasePrice">🏷️ 店舗の値札価格 / 仕入れ値（円）：</label>
@@ -226,16 +222,6 @@
 </div>
 
 <script>
-  // グローバルエラー監視（エラーがあれば画面最上部に赤色で表示）
-  window.onerror = function(msg, url, line) {
-    const banner = document.getElementById('errorBanner');
-    if (banner) {
-      banner.style.display = 'block';
-      banner.textContent = '⚠️ スクリプトエラー: ' + msg + ' (行: ' + line + ')';
-    }
-    return false;
-  };
-
   const GAS_ENDPOINT_URL = 'https://script.google.com/macros/s/AKfycbwCudTA-4Iv5PX7msBtFLkHW3ohBtKz_plmG4pqMJPZemIIBO7kVnmfsIOsZJbHE-eMRQ/exec';
 
   const apiKeyInput = document.getElementById('apiKey');
@@ -245,21 +231,12 @@
     localStorage.setItem('furugi_gemini_api_key', apiKeyInput.value.trim());
   });
 
-  function clearFile(inputId) {
-    const el = document.getElementById(inputId);
-    if (el) el.value = '';
-  }
-
   function log(msg) {
     const sb = document.getElementById('statusBox');
     if (sb) sb.textContent = '状態：' + msg;
   }
 
-  function wait(ms) {
-    return new Promise(r => setTimeout(r, ms));
-  }
-
-  function fileToBase64Safe(file) {
+  function fileToBase64(file) {
     return new Promise(function(resolve, reject) {
       if (!file) { resolve(''); return; }
       const reader = new FileReader();
@@ -293,44 +270,10 @@
     });
   }
 
-  function makeThumbnail(file) {
-    return new Promise(function(resolve) {
-      if (!file) { resolve(''); return; }
-      try {
-        const reader = new FileReader();
-        reader.onload = function(e) {
-          const img = new Image();
-          img.onload = function() {
-            try {
-              const canvas = document.createElement('canvas');
-              const maxDim = 120;
-              let w = img.width;
-              let h = img.height;
-              if (w > h) {
-                if (w > maxDim) { h = Math.round(h * (maxDim / w)); w = maxDim; }
-              } else {
-                if (h > maxDim) { w = Math.round(h * (maxDim / h)); h = maxDim; }
-              }
-              canvas.width = w;
-              canvas.height = h;
-              const ctx = canvas.getContext('2d');
-              ctx.drawImage(img, 0, 0, w, h);
-              resolve(canvas.toDataURL('image/jpeg', 0.5));
-            } catch(e) { resolve(''); }
-          };
-          img.onerror = function() { resolve(''); };
-          img.src = e.target.result;
-        };
-        reader.onerror = function() { resolve(''); };
-        reader.readAsDataURL(file);
-      } catch(e) { resolve(''); }
-    });
-  }
-
   let currentAnalysisSnapshot = null;
 
-  async function handleAnalysis() {
-    log('▶️ 開始準備中...');
+  document.getElementById('analyzeBtn').onclick = async function() {
+    log('▶️ 処理を開始しました...');
 
     const key = apiKeyInput.value.trim();
     if (!key) {
@@ -405,39 +348,74 @@
 
       for (let i = 0; i < files.length; i++) {
         log('⏳ 画像準備中 (' + (i + 1) + '/' + files.length + ')...');
-        const b64 = await fileToBase64Safe(files[i]);
+        const b64 = await fileToBase64(files[i]);
         if (b64) {
           parts.push({ inline_data: { mime_type: 'image/jpeg', data: b64 } });
         }
       }
 
-      log('⏳ サムネイル作成中...');
-      const thumbData = await makeThumbnail(files[0]);
+      // モデルの直接呼び出し（gemini-2.5-flash）
+      log('🔍 Gemini 2.5 Flash で鑑定通信中...');
 
-      const candidateModels = ['gemini-2.5-flash', 'gemini-1.5-flash', 'gemini-2.0-flash'];
-      let resData = null;
-      let lastErrMsg = '';
+      const resp = await fetch('https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=' + key, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          contents: [{ parts: parts }],
+          generationConfig: { response_mime_type: 'application/json' }
+        })
+      });
 
-      for (let m = 0; m < candidateModels.length; m++) {
-        const modelName = candidateModels[m];
-        log('🔍 ' + modelName + ' でAI鑑定中...');
+      const json = await resp.json();
+      if (json.error) {
+        throw new Error(json.error.message || JSON.stringify(json.error));
+      }
 
-        try {
-          const resp = await fetch('https://generativelanguage.googleapis.com/v1beta/models/' + modelName + ':generateContent?key=' + key, {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({
-              contents: [{ parts: parts }],
-              generationConfig: { response_mime_type: 'application/json' }
-            })
-          });
+      if (!json.candidates || !json.candidates[0] || !json.candidates[0].content || !json.candidates[0].content.parts[0]) {
+        throw new Error('AIから空の応答が返されました');
+      }
 
-          const json = await resp.json();
-          if (json.error) {
-            lastErrMsg = json.error.message || JSON.stringify(json.error);
-            await wait(1000);
-            continue;
-          }
+      const resData = JSON.parse(json.candidates[0].content.parts[0].text);
 
-          if (json.candidates && json.candidates[0] && json.candidates[0].content && json.candidates[0].content.parts[0]) {
-            resData = JSON.parse(json.candidates[0].content.part
+      document.getElementById('resBrand').textContent = resData.brand || '不明';
+      document.getElementById('resFeatures').textContent = resData.features || '-';
+
+      const shipping = Number(resData.shipping_fee) || 215;
+      const cost = Number(document.getElementById('purchasePrice').value) || 0;
+
+      function renderMarket(rId, sId, pId, obj, fee) {
+        const minP = Number(obj ? obj.min_price : 0) || 0;
+        const maxP = Number(obj ? obj.max_price : 0) || 0;
+        document.getElementById(rId).textContent = '¥' + minP.toLocaleString() + ' 〜 ¥' + maxP.toLocaleString();
+        document.getElementById(sId).textContent = '-¥' + shipping.toLocaleString();
+
+        const minProf = minP - Math.floor(minP * fee) - shipping - cost;
+        const maxProf = maxP - Math.floor(maxP * fee) - shipping - cost;
+        const fmt = function(v) { return (v >= 0 ? '+¥' : '-¥') + Math.abs(v).toLocaleString(); };
+
+        const el = document.getElementById(pId);
+        el.textContent = fmt(minProf) + ' 〜 ' + fmt(maxProf);
+        el.style.color = minProf >= 0 ? '#38bdf8' : (maxProf > 0 ? '#fde68a' : '#f87171');
+        return { minProf, maxProf };
+      }
+
+      const mProf = renderMarket('mercariRange', 'mercariShip', 'mercariProfit', resData.mercari, 0.10);
+      renderMarket('yahoofleaRange', 'yahoofleaShip', 'yahoofleaProfit', resData.yahooflea, 0.05);
+      renderMarket('yahooaucRange', 'yahooaucShip', 'yahooaucProfit', resData.yahooauc, 0.10);
+
+      const jBox = document.getElementById('judgeBox');
+      if (mProf.minProf >= 2500) {
+        jBox.className = 'judge-box judge-go';
+        jBox.textContent = '🟢 仕入れGO！（見込み手残り +¥' + mProf.minProf.toLocaleString() + '〜）';
+      } else if (mProf.minProf >= 1000) {
+        jBox.className = 'judge-box judge-consider';
+        jBox.textContent = '🟡 要検討（薄利・回転重視 +¥' + mProf.minProf.toLocaleString() + '〜）';
+      } else {
+        jBox.className = 'judge-box judge-stay';
+        jBox.textContent = '🔴 仕入れ見送り（赤字または利益薄すぎ）';
+      }
+
+      const kw = resData.search_keyword || (resData.brand + ' 古着');
+      document.getElementById('kwInput').value = kw;
+
+      const enc = encodeURICom
