@@ -200,14 +200,12 @@
       <button id="copyDescBtn" class="sub-btn">📋 説明文をコピー</button>
     </div>
 
-    <!-- スマホ内保存のみのシンプルなボタン構成 -->
     <button id="saveHistoryBtn" class="save-history-btn" type="button" onclick="saveToLocalHistory()">📱 スマホ端末内に保存</button>
   </div>
 
   <div class="card">
-    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px;">
+    <div style="margin-bottom: 12px;">
       <h2 style="font-size: 1.1rem; color: #38bdf8;">📦 端末内の仕入れ履歴</h2>
-      <button id="exportCsvBtn" class="history-sm-btn" style="background: #0284c7; color: #fff;">📊 CSV出力</button>
     </div>
     <div id="historyList">
       <div style="color: #64748b; font-size: 0.85rem; text-align: center; padding: 10px;">履歴はまだありません</div>
@@ -351,7 +349,6 @@
         }
       }
 
-      // 指示通りの本命モデル（gemini-3.8-flash を最優先）
       const candidateModels = ['gemini-3.8-flash', 'gemini-3.5-flash-lite'];
       let resData = null;
       let lastErrMsg = '';
@@ -550,44 +547,6 @@
     if (!confirm('すべての仕入れ履歴を削除しますか？')) return;
     saveHistory([]);
     renderHistory();
-  };
-
-  document.getElementById('exportCsvBtn').onclick = function() {
-    const list = getHistory();
-    if (list.length === 0) {
-      alert('エクスポートする履歴がありません');
-      return;
-    }
-
-    let csvContent = '\uFEFF';
-    csvContent += '日時,ブランド・年代,アイテム特徴,仕入れ値(円),メルカリ見込み純利益,出品タイトル,出品説明文\n';
-
-    list.forEach(function(item) {
-      function escapeCsv(str) {
-        if (!str) return '""';
-        return '"' + String(str).replace(/"/g, '""').replace(/\r?\n/g, ' ') + '"';
-      }
-      const row = [
-        escapeCsv(item.date),
-        escapeCsv(item.brand),
-        escapeCsv(item.features),
-        item.purchasePrice || 0,
-        escapeCsv(item.profitRange),
-        escapeCsv(item.title),
-        escapeCsv(item.description)
-      ];
-      csvContent += row.join(',') + '\n';
-    });
-
-    const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement('a');
-    a.href = url;
-    a.download = '古着仕入れ履歴_' + new Date().toISOString().slice(0, 10) + '.csv';
-    document.body.appendChild(a);
-    a.click();
-    document.body.removeChild(a);
-    URL.revokeObjectURL(url);
   };
 
   renderHistory();
