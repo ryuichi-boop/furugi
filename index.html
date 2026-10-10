@@ -76,16 +76,16 @@ body{background:var(--bg);color:var(--tx);padding:10px;line-height:1.4}
       <option value="シンプル・要点重視">シンプル・要点重視（短文型）</option>
       <option value="ストリート・ヴィンテージ感">ストリート・ヴィンテージ（高単価型）</option>
     </select>
-    <button class="btn" onclick="run()">⚡ AI査定＆出品文を生成</button>
+    <button class="btn" onclick="run()">⚡ AI検索査定＆出品文を生成</button>
   </div>
 
   <div id="log" class="log">待機中...</div>
 
   <div id="res" class="cd" style="display:none">
-    <div class="rw"><span style="font-size:.8rem;font-weight:700">📊 査定データ</span><span id="rBrd" style="color:#38bdf8;font-size:.75rem"></span></div>
+    <div class="rw"><span style="font-size:.8rem;font-weight:700">📊 検索査定データ</span><span id="rBrd" style="color:#38bdf8;font-size:.75rem"></span></div>
     <div id="rFt" style="font-size:.72rem;background:#090e1a;padding:5px;border-radius:5px"></div>
     <div class="p-g">
-      <div class="pc"><div class="pct">メルカリ</div><div class="pcv" id="pM">-</div></div>
+      <div class="pc"><div class="pct">メルカリ相場</div><div class="pcv" id="pM">-</div></div>
       <div class="pc"><div class="pct">Y!フリマ</div><div class="pcv" id="pY">-</div></div>
       <div class="pc"><div class="pct">ヤフオク</div><div class="pcv" id="pA">-</div></div>
     </div>
@@ -123,7 +123,6 @@ function clrCur(){cats[curCat][curIdx].v='';renG();}
 function nxtF(){curIdx=(curIdx<cats[curCat].length-1)?curIdx+1:0;renG();}
 function tgS(el){el.parentElement.querySelectorAll('.chip').forEach(c=>c.classList.remove('sel'));el.classList.add('sel');}
 
-// 画面の入力値をそのまま100%確実にテキスト化する関数
 function buildDirectSizeBlock(){
   let s='【実寸サイズ(平置きcm)】\n';
   cats[curCat].forEach(f=>{s+=`・${f.k}：${f.v?f.v+'cm':'未計測'}\n`;});
@@ -172,19 +171,24 @@ async function run(){
   document.getElementById('res').style.display='none';
   let t=document.getElementById('tone').value;
 
-  let prompt=`古着のプロ鑑定士として画像から査定を行い、純粋なJSONのみ出力せよ。
-1.オールドGAP/USA製/銀タグ等は上方修正
+  let prompt=`Google検索ツールを必ず使用し、画像に写っているブランド・タグ・デザインからネット上の直近メルカリ売り切れ相場・ヤフオク取引実績をリアルタイム検索して査定してください。
+出力は余計な解説を挟まず、必ず以下の純粋なJSONオブジェクトのみを出力すること。
+
+1.オールドGAP/USA製/銀タグ等はプレ値相場を正確に反映
 2.商品説明文(listing_template.intro)はアイテムの魅力・特徴・着こなし提案を記載せよ。指定トーン:${t}
 3.listing_template.tagsにはメルカリ検索用ハッシュタグ(#ブランド #カテゴリ #古着男子 等)を5〜8個、半角スペース区切りで出力せよ。
-{"brand":"","features":"","shipping_fee":215,"search_keyword":"","mercari":{"min_price":0,"max_price":0},"yahooflea":{"min_price":0,"max_price":0},"yahooauc":{"min_price":0,"max_price":0},"listing_template":{"title":"40字以内","intro":"アイテム紹介文","tags":"#タグ"}}`;
+{"brand":"","features":"検索した市場相場の根拠","shipping_fee":215,"search_keyword":"","mercari":{"min_price":0,"max_price":0},"yahooflea":{"min_price":0,"max_price":0},"yahooauc":{"min_price":0,"max_price":0},"listing_template":{"title":"40字以内","intro":"アイテム紹介文","tags":"#タグ"}}`;
 
   let parts=[{text:prompt}];imgs.forEach(m=>parts.push({inline_data:{mime_type:'image/jpeg',data:m.b}}));
-  setL('🔍 gemini-3.6-flash で鑑定中...');
+  setL('🔍 Google検索で直近売切相場を調査中...');
 
   try{
     let resp=await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-3.6-flash:generateContent?key=${k}`,{
       method:'POST',headers:{'Content-Type':'application/json'},
-      body:JSON.stringify({contents:[{parts}],generationConfig:{response_mime_type:"application/json"}})
+      body:JSON.stringify({
+        contents:[{parts}],
+        tools:[{google_search:{}}]
+      })
     });
     if(!resp.ok){let e=await resp.json().catch(()=>null);throw new Error(e?.error?.message||`HTTP ${resp.status}`);}
     let data=await resp.json();let txt=data.candidates?.[0]?.content?.parts?.[0]?.text;if(!txt)throw new Error('応答なし');
@@ -200,7 +204,6 @@ async function run(){
     qKw=p.search_keyword||p.brand||'';document.getElementById('rKw').innerText=qKw;
     document.getElementById('oT').value=p.listing_template?.title||'';
 
-    // ★ここで入力値とAIの文章を確実に直接合体！
     let mySizeBlock = buildDirectSizeBlock();
     let intro = p.listing_template?.intro || p.listing_template?.description || '';
     let tags = p.listing_template?.tags || '';
@@ -208,7 +211,7 @@ async function run(){
     let finalDesc = `${intro}\n\n${mySizeBlock}\n${tags}`.trim();
     document.getElementById('oD').value = finalDesc;
 
-    document.getElementById('res').style.display='flex';setL('✨ 査定・採寸合体・タグ生成完了！');
+    document.getElementById('res').style.display='flex';setL('✨ 最新相場査定・採寸合体・タグ生成完了！');
   }catch(err){setL('エラー: '+err.message);}
 }
 
