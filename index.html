@@ -442,6 +442,7 @@
     renderPreviews();
   }
 
+  // 軽量化・圧縮処理（長辺1200px・JPEG品質0.8）
   function compressImage(file) {
     return new Promise((resolve, reject) => {
       const reader = new FileReader();
@@ -552,8 +553,8 @@
         }
       }
 
-      // 安定している複数のFlashモデルで自動フォールバック
-      const candidateModels = ['gemini-3.5-flash', 'gemini-3.6-flash', 'gemini-2.5-flash'];
+      // 公式の gemini-3.8-flash を本命とし、混雑・制限時は gemini-3.5-flash にフォールバック
+      const candidateModels = ['gemini-3.8-flash', 'gemini-3.5-flash'];
       let resData = null;
       let lastErrMsg = '';
 
@@ -572,7 +573,7 @@
 
           if (!resp.ok) {
             const errJson = await resp.json().catch(() => null);
-            const msg = errJson?.error?.message || `HTTP ${resp.status}`;
+            const msg = errJson?.error?.message || `HTTP ${resp.status} エラー`;
             throw new Error(msg);
           }
 
@@ -585,17 +586,16 @@
 
           resData = JSON.parse(jsonMatch[0]);
           log(`✅ ${modelName} による鑑定完了！`);
-          break; // 成功したらループ終了
+          break;
         } catch (e) {
           lastErrMsg = e.message;
-          log(`⚠️ ${modelName} が混雑中（${e.message}）。次のモデルへ自動切替中...`);
-          // 1秒待機して次を試す
+          log(`⚠️ ${modelName} 待機/切替: ${e.message}`);
           await new Promise(r => setTimeout(r, 1000));
         }
       }
 
       if (!resData) {
-        throw new Error(lastErrMsg || '全モデルで混雑エラーが発生しました。数十秒後に再試行してください');
+        throw new Error(lastErrMsg || '全モデルで通信に失敗しました');
       }
 
       // 結果の画面反映
