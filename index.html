@@ -76,13 +76,13 @@ body{background:var(--bg);color:var(--tx);padding:10px;line-height:1.4}
       <option value="シンプル・要点重視">シンプル・要点重視（短文型）</option>
       <option value="ストリート・ヴィンテージ感">ストリート・ヴィンテージ（高単価型）</option>
     </select>
-    <button class="btn" onclick="run()">⚡ AI検索査定＆出品文を生成</button>
+    <button class="btn" onclick="run()">⚡ AI査定＆出品文を生成</button>
   </div>
 
   <div id="log" class="log">待機中...</div>
 
   <div id="res" class="cd" style="display:none">
-    <div class="rw"><span style="font-size:.8rem;font-weight:700">📊 検索査定データ</span><span id="rBrd" style="color:#38bdf8;font-size:.75rem"></span></div>
+    <div class="rw"><span style="font-size:.8rem;font-weight:700">📊 査定データ</span><span id="rBrd" style="color:#38bdf8;font-size:.75rem"></span></div>
     <div id="rFt" style="font-size:.72rem;background:#090e1a;padding:5px;border-radius:5px"></div>
     <div class="p-g">
       <div class="pc"><div class="pct">メルカリ相場</div><div class="pcv" id="pM">-</div></div>
@@ -171,23 +171,21 @@ async function run(){
   document.getElementById('res').style.display='none';
   let t=document.getElementById('tone').value;
 
-  let prompt=`Google検索ツールを必ず使用し、画像に写っているブランド・タグ・デザインからネット上の直近メルカリ売り切れ相場・ヤフオク取引実績をリアルタイム検索して査定してください。
-出力は余計な解説を挟まず、必ず以下の純粋なJSONオブジェクトのみを出力すること。
-
-1.オールドGAP/USA製/銀タグ等はプレ値相場を正確に反映
+  let prompt=`あなたは古着市場のプロ鑑定士です。画像に写っているブランド・タグ・デザインから市場相場を査定し、純粋なJSONのみ出力せよ。
+1.オールドGAP/USA製/銀タグ等は上方修正
 2.商品説明文(listing_template.intro)はアイテムの魅力・特徴・着こなし提案を記載せよ。指定トーン:${t}
 3.listing_template.tagsにはメルカリ検索用ハッシュタグ(#ブランド #カテゴリ #古着男子 等)を5〜8個、半角スペース区切りで出力せよ。
-{"brand":"","features":"検索した市場相場の根拠","shipping_fee":215,"search_keyword":"","mercari":{"min_price":0,"max_price":0},"yahooflea":{"min_price":0,"max_price":0},"yahooauc":{"min_price":0,"max_price":0},"listing_template":{"title":"40字以内","intro":"アイテム紹介文","tags":"#タグ"}}`;
+{"brand":"","features":"査定理由や特徴","shipping_fee":215,"search_keyword":"","mercari":{"min_price":0,"max_price":0},"yahooflea":{"min_price":0,"max_price":0},"yahooauc":{"min_price":0,"max_price":0},"listing_template":{"title":"40字以内","intro":"アイテム紹介文","tags":"#タグ"}}`;
 
   let parts=[{text:prompt}];imgs.forEach(m=>parts.push({inline_data:{mime_type:'image/jpeg',data:m.b}}));
-  setL('🔍 Google検索で直近売切相場を調査中...');
+  setL('🔍 gemini-3.6-flash でAI鑑定中...');
 
   try{
     let resp=await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-3.6-flash:generateContent?key=${k}`,{
       method:'POST',headers:{'Content-Type':'application/json'},
       body:JSON.stringify({
         contents:[{parts}],
-        tools:[{google_search:{}}]
+        generationConfig:{response_mime_type:"application/json"}
       })
     });
     if(!resp.ok){let e=await resp.json().catch(()=>null);throw new Error(e?.error?.message||`HTTP ${resp.status}`);}
@@ -211,7 +209,7 @@ async function run(){
     let finalDesc = `${intro}\n\n${mySizeBlock}\n${tags}`.trim();
     document.getElementById('oD').value = finalDesc;
 
-    document.getElementById('res').style.display='flex';setL('✨ 最新相場査定・採寸合体・タグ生成完了！');
+    document.getElementById('res').style.display='flex';setL('✨ 査定・採寸合体・タグ生成完了！');
   }catch(err){setL('エラー: '+err.message);}
 }
 
