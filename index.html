@@ -179,8 +179,8 @@ async function run(){
 
   let parts=[{text:prompt}];imgs.forEach(m=>parts.push({inline_data:{mime_type:'image/jpeg',data:m.b}}));
   
-  // ★1日1500回無料の超大容量モデルに変更
-  const model = 'gemini-2.5-flash';
+  // ★Google公式指定の最新標準モデル
+  const model = 'gemini-3.8-flash';
   setL(`🔍 ${model} でAI鑑定中...`);
 
   try {
