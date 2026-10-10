@@ -390,7 +390,6 @@
   function handleFiles(files) {
     if (!files || files.length === 0) return;
     const newFiles = Array.from(files);
-    // 合計4枚までに制限
     selectedFiles = selectedFiles.concat(newFiles).slice(0, 4);
     renderPreviews();
     document.getElementById('imgInput').value = '';
@@ -443,7 +442,6 @@
     renderPreviews();
   }
 
-  // 軽量化・圧縮処理（長辺1200px・JPEG品質0.8）
   function compressImage(file) {
     return new Promise((resolve, reject) => {
       const reader = new FileReader();
@@ -542,7 +540,7 @@
       parts.push({ text: prompt });
 
       for (let i = 0; i < selectedFiles.length; i++) {
-        log(`⏳ 画像最適化＆軽量化中 (${i + 1}/${selectedFiles.length})...`);
+        log(`⏳ 画像最適化中 (${i + 1}/${selectedFiles.length})...`);
         const b64 = await compressImage(selectedFiles[i]);
         if (b64) {
           parts.push({
@@ -554,30 +552,51 @@
         }
       }
 
-      const modelName = 'gemini-3.5-flash';
-      log(`🔍 ${modelName} でAI鑑定中...`);
+      // 安定している複数のFlashモデルで自動フォールバック
+      const candidateModels = ['gemini-3.5-flash', 'gemini-3.6-flash', 'gemini-2.5-flash'];
+      let resData = null;
+      let lastErrMsg = '';
 
-      const resp = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/${modelName}:generateContent?key=${apiKey}`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          contents: [{ parts: parts }]
-        })
-      });
+      for (let m = 0; m < candidateModels.length; m++) {
+        const modelName = candidateModels[m];
+        log(`🔍 ${modelName} でAI鑑定中...`);
 
-      if (!resp.ok) {
-        const errJson = await resp.json().catch(() => null);
-        throw new Error(errJson?.error?.message || `通信エラー (HTTP ${resp.status})`);
+        try {
+          const resp = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/${modelName}:generateContent?key=${apiKey}`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              contents: [{ parts: parts }]
+            })
+          });
+
+          if (!resp.ok) {
+            const errJson = await resp.json().catch(() => null);
+            const msg = errJson?.error?.message || `HTTP ${resp.status}`;
+            throw new Error(msg);
+          }
+
+          const data = await resp.json();
+          const rawText = data.candidates?.[0]?.content?.parts?.[0]?.text;
+          if (!rawText) throw new Error('AIからの応答が空でした');
+
+          const jsonMatch = rawText.match(/\{[\s\S]*\}/);
+          if (!jsonMatch) throw new Error('JSON形式の解析に失敗しました');
+
+          resData = JSON.parse(jsonMatch[0]);
+          log(`✅ ${modelName} による鑑定完了！`);
+          break; // 成功したらループ終了
+        } catch (e) {
+          lastErrMsg = e.message;
+          log(`⚠️ ${modelName} が混雑中（${e.message}）。次のモデルへ自動切替中...`);
+          // 1秒待機して次を試す
+          await new Promise(r => setTimeout(r, 1000));
+        }
       }
 
-      const data = await resp.json();
-      const rawText = data.candidates?.[0]?.content?.parts?.[0]?.text;
-      if (!rawText) throw new Error('AIからの応答が空でした');
-
-      const jsonMatch = rawText.match(/\{[\s\S]*\}/);
-      if (!jsonMatch) throw new Error('JSON形式の解析に失敗しました');
-
-      const resData = JSON.parse(jsonMatch[0]);
+      if (!resData) {
+        throw new Error(lastErrMsg || '全モデルで混雑エラーが発生しました。数十秒後に再試行してください');
+      }
 
       // 結果の画面反映
       document.getElementById('detectedBrand').innerText = resData.brand || '';
@@ -597,7 +616,7 @@
       log('✨ 査定およびハッシュタグ付き出品文の生成が完了しました！');
 
     } catch (err) {
-      log('エラー詳細: ' + (err.message || '予期せぬ通信エラー'));
+      log('エラー詳細: ' + (err.message || '通信エラー'));
     }
   }
 
