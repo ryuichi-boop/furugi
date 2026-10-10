@@ -29,7 +29,7 @@ body{background:var(--bg);color:var(--tx);padding:10px;line-height:1.4}
 .p-g{display:grid;grid-template-columns:1fr 1fr 1fr;gap:5px}
 .pc{background:#090e1a;border:1px solid var(--bd);border-radius:7px;padding:5px;text-align:center}
 .pct{font-size:.62rem;color:var(--sb)}.pcv{font-size:.78rem;font-weight:700;color:#38bdf8}
-.ta{width:100%;background:#090e1a;border:1px solid #334155;border-radius:7px;color:#e2e8f0;padding:7px;font-size:.75rem;min-height:110px}
+.ta{width:100%;background:#090e1a;border:1px solid #334155;border-radius:7px;color:#e2e8f0;padding:7px;font-size:.75rem;min-height:120px}
 </style></head>
 <body>
 <div class="wrap">
@@ -122,7 +122,9 @@ function bsN(){let f=cats[curCat][curIdx];f.v=f.v.slice(0,-1);renG();}
 function clrCur(){cats[curCat][curIdx].v='';renG();}
 function nxtF(){curIdx=(curIdx<cats[curCat].length-1)?curIdx+1:0;renG();}
 function tgS(el){el.parentElement.querySelectorAll('.chip').forEach(c=>c.classList.remove('sel'));el.classList.add('sel');}
-function getSzTxt(){
+
+// 画面の入力値をそのまま100%確実にテキスト化する関数
+function buildDirectSizeBlock(){
   let s='【実寸サイズ(平置きcm)】\n';
   cats[curCat].forEach(f=>{s+=`・${f.k}：${f.v?f.v+'cm':'未計測'}\n`;});
   s+='※多少の誤差はご了承下さい。\n\n【コンディション】\n';
@@ -132,6 +134,7 @@ function getSzTxt(){
   else{s+='・目立つ破れ等の致命的ダメージはなく良好です。\n';}
   return s;
 }
+
 function opt(f){
   return new Promise((res,rej)=>{
     let r=new FileReader();r.onload=e=>{
@@ -162,18 +165,22 @@ function renTh(){
 }
 function delI(i){imgs.splice(i,1);renTh();}
 function clrImgs(){imgs=[];renTh();}
+
 async function run(){
   let k=document.getElementById('apiKey').value.trim()||localStorage.getItem('furugi_k');
   if(!k)return alert('APIキーを設定してください');if(!imgs.length)return alert('写真を選択してください');
   document.getElementById('res').style.display='none';
-  let t=document.getElementById('tone').value,szBlock=getSzTxt();
-  let prompt=`古着のプロ鑑定士として画像と採寸情報を基に査定し、純粋なJSONのみ出力せよ。
+  let t=document.getElementById('tone').value;
+
+  let prompt=`古着のプロ鑑定士として画像から査定を行い、純粋なJSONのみ出力せよ。
 1.オールドGAP/USA製/銀タグ等は上方修正
-2.出品文(listing_template.description)内に以下を改変せずそのまま組み込むこと：\n${szBlock}
-3.出品文末尾にメルカリ検索用ハッシュタグ(#ブランド #カテゴリ #古着男子 等)を5〜8個付与せよ。指定トーン:${t}
-{"brand":"","features":"","shipping_fee":215,"search_keyword":"","mercari":{"min_price":0,"max_price":0},"yahooflea":{"min_price":0,"max_price":0},"yahooauc":{"min_price":0,"max_price":0},"listing_template":{"title":"40字以内","description":""}}`;
+2.商品説明文(listing_template.intro)はアイテムの魅力・特徴・着こなし提案を記載せよ。指定トーン:${t}
+3.listing_template.tagsにはメルカリ検索用ハッシュタグ(#ブランド #カテゴリ #古着男子 等)を5〜8個、半角スペース区切りで出力せよ。
+{"brand":"","features":"","shipping_fee":215,"search_keyword":"","mercari":{"min_price":0,"max_price":0},"yahooflea":{"min_price":0,"max_price":0},"yahooauc":{"min_price":0,"max_price":0},"listing_template":{"title":"40字以内","intro":"アイテム紹介文","tags":"#タグ"}}`;
+
   let parts=[{text:prompt}];imgs.forEach(m=>parts.push({inline_data:{mime_type:'image/jpeg',data:m.b}}));
   setL('🔍 gemini-3.6-flash で鑑定中...');
+
   try{
     let resp=await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-3.6-flash:generateContent?key=${k}`,{
       method:'POST',headers:{'Content-Type':'application/json'},
@@ -184,16 +191,27 @@ async function run(){
     txt=txt.replace(/```json/gi,'').replace(/```/g,'').trim();
     let s=txt.indexOf('{'),e=txt.lastIndexOf('}');if(s!==-1&&e!==-1)txt=txt.substring(s,e+1);
     let p=JSON.parse(txt);
+
     document.getElementById('rBrd').innerText=p.brand||'';document.getElementById('rFt').innerText=p.features||'';
     document.getElementById('pM').innerText=`¥${(p.mercari?.min_price||0).toLocaleString()}〜${(p.mercari?.max_price||0).toLocaleString()}`;
     document.getElementById('pY').innerText=`¥${(p.yahooflea?.min_price||0).toLocaleString()}〜${(p.yahooflea?.max_price||0).toLocaleString()}`;
     document.getElementById('pA').innerText=`¥${(p.yahooauc?.min_price||0).toLocaleString()}〜${(p.yahooauc?.max_price||0).toLocaleString()}`;
     document.getElementById('rSh').innerText=`¥${p.shipping_fee||215}`;
     qKw=p.search_keyword||p.brand||'';document.getElementById('rKw').innerText=qKw;
-    document.getElementById('oT').value=p.listing_template?.title||'';document.getElementById('oD').value=p.listing_template?.description||'';
+    document.getElementById('oT').value=p.listing_template?.title||'';
+
+    // ★ここで入力値とAIの文章を確実に直接合体！
+    let mySizeBlock = buildDirectSizeBlock();
+    let intro = p.listing_template?.intro || p.listing_template?.description || '';
+    let tags = p.listing_template?.tags || '';
+
+    let finalDesc = `${intro}\n\n${mySizeBlock}\n${tags}`.trim();
+    document.getElementById('oD').value = finalDesc;
+
     document.getElementById('res').style.display='flex';setL('✨ 査定・採寸合体・タグ生成完了！');
   }catch(err){setL('エラー: '+err.message);}
 }
+
 function sch(p){
   if(!qKw)return alert('検索ワードなし');let q=encodeURIComponent(qKw),u='';
   if(p==='m')u=`https://jp.mercari.com/search?keyword=${q}&status=sold_out&sort=created_time&order=desc`;
