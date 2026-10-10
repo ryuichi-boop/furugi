@@ -169,6 +169,7 @@
       border-radius: 6px;
       object-fit: cover;
       border: 1px solid #334155;
+      background: #0f172a;
     }
     .thumb-del-btn {
       position: absolute;
@@ -354,7 +355,7 @@
 </div>
 
 <script>
-  let selectedFiles = [];
+  let selectedImages = []; // { dataUrl: string, b64: string }
   let currentSearchKw = '';
 
   function log(msg) {
@@ -387,63 +388,8 @@
     document.getElementById('apiBox').style.display = 'none';
   }
 
-  function handleFiles(files) {
-    if (!files || files.length === 0) return;
-    const newFiles = Array.from(files);
-    selectedFiles = selectedFiles.concat(newFiles).slice(0, 4);
-    renderPreviews();
-    document.getElementById('imgInput').value = '';
-  }
-
-  function renderPreviews() {
-    const previewArea = document.getElementById('previewArea');
-    const clearBtn = document.getElementById('clearPhotosBtn');
-    previewArea.innerHTML = '';
-
-    if (selectedFiles.length === 0) {
-      clearBtn.style.display = 'none';
-      log('写真を選択してください');
-      return;
-    }
-
-    clearBtn.style.display = 'inline-block';
-    selectedFiles.forEach((file, index) => {
-      const wrap = document.createElement('div');
-      wrap.className = 'thumb-wrapper';
-
-      const img = document.createElement('img');
-      img.className = 'preview-thumb';
-      img.src = URL.createObjectURL(file);
-
-      const del = document.createElement('div');
-      del.className = 'thumb-del-btn';
-      del.innerText = '×';
-      del.onclick = (e) => {
-        e.stopPropagation();
-        removeSinglePhoto(index);
-      };
-
-      wrap.appendChild(img);
-      wrap.appendChild(del);
-      previewArea.appendChild(wrap);
-    });
-
-    log(`${selectedFiles.length}枚の写真を選択中`);
-  }
-
-  function removeSinglePhoto(index) {
-    selectedFiles.splice(index, 1);
-    renderPreviews();
-  }
-
-  function clearAllPhotos() {
-    selectedFiles = [];
-    document.getElementById('imgInput').value = '';
-    renderPreviews();
-  }
-
-  // 軽量化・圧縮処理（長辺1200px・JPEG品質0.8）
-  function compressImage(file) {
+  // どんな形式の画像でも確実に読み込んでBase64に縮小変換する関数
+  function processFileToOptimizedB64(file) {
     return new Promise((resolve, reject) => {
       const reader = new FileReader();
       reader.onload = (e) => {
@@ -466,15 +412,84 @@
           canvas.height = h;
           const ctx = canvas.getContext('2d');
           ctx.drawImage(img, 0, 0, w, h);
-          const dataUrl = canvas.toDataURL('image/jpeg', 0.8);
-          resolve(dataUrl.split(',')[1]);
+          const dataUrl = canvas.toDataURL('image/jpeg', 0.82);
+          resolve({
+            dataUrl: dataUrl,
+            b64: dataUrl.split(',')[1]
+          });
         };
-        img.onerror = reject;
+        img.onerror = () => reject(new Error('画像の読み込みに失敗しました'));
         img.src = e.target.result;
       };
-      reader.onerror = reject;
+      reader.onerror = () => reject(new Error('ファイルの読み込みに失敗しました'));
       reader.readAsDataURL(file);
     });
+  }
+
+  async function handleFiles(files) {
+    if (!files || files.length === 0) return;
+    const fileList = Array.from(files);
+    log(`⏳ 画像を処理中...`);
+
+    for (const file of fileList) {
+      if (selectedImages.length >= 4) break;
+      try {
+        const processed = await processFileToOptimizedB64(file);
+        selectedImages.push(processed);
+      } catch (err) {
+        console.error(err);
+      }
+    }
+
+    renderPreviews();
+    document.getElementById('imgInput').value = '';
+  }
+
+  function renderPreviews() {
+    const previewArea = document.getElementById('previewArea');
+    const clearBtn = document.getElementById('clearPhotosBtn');
+    previewArea.innerHTML = '';
+
+    if (selectedImages.length === 0) {
+      clearBtn.style.display = 'none';
+      log('写真を選択してください');
+      return;
+    }
+
+    clearBtn.style.display = 'inline-block';
+    selectedImages.forEach((imgObj, index) => {
+      const wrap = document.createElement('div');
+      wrap.className = 'thumb-wrapper';
+
+      const img = document.createElement('img');
+      img.className = 'preview-thumb';
+      img.src = imgObj.dataUrl;
+
+      const del = document.createElement('div');
+      del.className = 'thumb-del-btn';
+      del.innerText = '×';
+      del.onclick = (e) => {
+        e.stopPropagation();
+        removeSinglePhoto(index);
+      };
+
+      wrap.appendChild(img);
+      wrap.appendChild(del);
+      previewArea.appendChild(wrap);
+    });
+
+    log(`${selectedImages.length}枚の写真を選択中`);
+  }
+
+  function removeSinglePhoto(index) {
+    selectedImages.splice(index, 1);
+    renderPreviews();
+  }
+
+  function clearAllPhotos() {
+    selectedImages = [];
+    document.getElementById('imgInput').value = '';
+    renderPreviews();
   }
 
   async function runAppraisal() {
@@ -485,8 +500,8 @@
       return;
     }
 
-    if (!selectedFiles || selectedFiles.length === 0) {
-      alert('写真が選択されていません。「ファイルを選択」から写真を指定してください');
+    if (!selectedImages || selectedImages.length === 0) {
+      alert('写真が選択されていません。「写真を選択」から写真を指定してください');
       log('写真が未選択です');
       return;
     }
@@ -540,20 +555,17 @@
 
       parts.push({ text: prompt });
 
-      for (let i = 0; i < selectedFiles.length; i++) {
-        log(`⏳ 画像最適化中 (${i + 1}/${selectedFiles.length})...`);
-        const b64 = await compressImage(selectedFiles[i]);
-        if (b64) {
-          parts.push({
-            inline_data: {
-              mime_type: 'image/jpeg',
-              data: b64
-            }
-          });
-        }
-      }
+      // 既に最適化済みの画像をpartsへ追加
+      selectedImages.forEach(imgObj => {
+        parts.push({
+          inline_data: {
+            mime_type: 'image/jpeg',
+            data: imgObj.b64
+          }
+        });
+      });
 
-      // 公式の gemini-3.8-flash を本命とし、混雑・制限時は gemini-3.5-flash にフォールバック
+      // gemini-3.8-flash を本命とし、混雑時は gemini-3.5-flash にフォールバック
       const candidateModels = ['gemini-3.8-flash', 'gemini-3.5-flash'];
       let resData = null;
       let lastErrMsg = '';
@@ -595,7 +607,7 @@
       }
 
       if (!resData) {
-        throw new Error(lastErrMsg || '全モデルで通信に失敗しました');
+        throw new Error(lastErrMsg || '通信に失敗しました');
       }
 
       // 結果の画面反映
