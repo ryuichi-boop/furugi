@@ -1,271 +1,204 @@
-<!DOCTYPE html>
-<html lang="ja">
-<head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width,initial-scale=1.0,user-scalable=no">
-<title>古着AIリサーチ＆出品PRO</title>
+<!DOCTYPE html><html lang="ja"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1,user-scalable=no"><title>古着AIリサーチ＆出品PRO</title>
 <style>
-:root{--bg:#0b1329;--card:#162033;--border:#1e293b;--txt:#f8fafc;--sub:#94a3b8;--blue:#0284c7;--red:#ef4444}
+:root{--bg:#0b1329;--cd:#162033;--bd:#1e293b;--tx:#f8fafc;--sb:#94a3b8;--bl:#0284c7;--rd:#ef4444}
 *{box-sizing:border-box;margin:0;padding:0;font-family:-apple-system,BlinkMacSystemFont,sans-serif;-webkit-tap-highlight-color:transparent}
-body{background:var(--bg);color:var(--txt);padding:14px;line-height:1.5}
-.wrap{max-width:480px;margin:0 auto;display:flex;flex-direction:column;gap:12px}
-header{text-align:center;padding:4px 0}
-header h1{font-size:1.15rem;color:#38bdf8}
-header p{font-size:0.75rem;color:var(--sub)}
-.card{background:var(--card);border:1px solid var(--border);border-radius:12px;padding:12px;display:flex;flex-direction:column;gap:10px}
-.row{display:flex;justify-content:space-between;align-items:center}
-.btn{width:100%;padding:11px;border:none;border-radius:8px;font-size:0.85rem;font-weight:700;color:#fff;background:var(--blue);cursor:pointer}
-.btn-sm{padding:5px 9px;font-size:0.75rem;background:#334155;color:#fff;border:none;border-radius:6px;cursor:pointer}
-.btn-del{background:#7f1d1d;color:#fca5a5}
-.ipt{width:100%;background:#0f172a;border:1px solid #334155;color:#fff;padding:9px;border-radius:8px;font-size:0.85rem;outline:none}
-.upload{border:2px dashed #334155;border-radius:8px;padding:16px;text-align:center;background:#090e1a;cursor:pointer;color:var(--sub);font-size:0.8rem}
-.thumbs{display:flex;gap:8px;overflow-x:auto;padding:4px 0}
-.th-wrap{position:relative;width:60px;height:60px;flex-shrink:0}
-.th-img{width:100%;height:100%;border-radius:6px;object-fit:cover;border:1px solid #334155}
-.th-x{position:absolute;top:-5px;right:-5px;width:18px;height:18px;background:var(--red);color:#fff;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:11px;cursor:pointer}
-.log{background:#090e1a;border:1px solid var(--border);border-radius:8px;padding:9px;font-size:0.75rem;color:var(--sub);white-space:pre-wrap}
-.grid{display:grid;grid-template-columns:1fr 1fr 1fr;gap:6px}
-.box{background:#090e1a;border:1px solid var(--border);border-radius:8px;padding:6px;text-align:center}
-.box-t{font-size:0.65rem;color:var(--sub)}
-.box-v{font-size:0.8rem;font-weight:700;color:#38bdf8}
-.txt-area{width:100%;background:#090e1a;border:1px solid #334155;border-radius:8px;color:#e2e8f0;padding:8px;font-size:0.8rem;min-height:110px}
-</style>
-</head>
+body{background:var(--bg);color:var(--tx);padding:10px;line-height:1.4}
+.wrap{max-width:480px;margin:0 auto;display:flex;flex-direction:column;gap:10px}
+.cd{background:var(--cd);border:1px solid var(--bd);border-radius:10px;padding:10px;display:flex;flex-direction:column;gap:8px}
+.rw{display:flex;justify-content:space-between;align-items:center}
+.btn{width:100%;padding:10px;border:none;border-radius:7px;font-size:.85rem;font-weight:700;color:#fff;background:var(--bl);cursor:pointer}
+.s-btn{padding:4px 8px;font-size:.72rem;background:#334155;color:#fff;border:none;border-radius:5px;cursor:pointer}
+.ipt{width:100%;background:#0f172a;border:1px solid #334155;color:#fff;padding:8px;border-radius:7px;font-size:.8rem;outline:none}
+.up{border:2px dashed #334155;border-radius:7px;padding:12px;text-align:center;background:#090e1a;cursor:pointer;color:var(--sb);font-size:.75rem}
+.ths{display:flex;gap:6px;overflow-x:auto}
+.tw{position:relative;width:54px;height:54px;flex-shrink:0}
+.ti{width:100%;height:100%;border-radius:5px;object-fit:cover;border:1px solid #334155}
+.tx{position:absolute;top:-4px;right:-4px;width:16px;height:16px;background:var(--rd);color:#fff;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:10px;cursor:pointer}
+.acc{background:#090e1a;border:1px solid #334155;padding:8px;border-radius:7px;font-size:.78rem;font-weight:700;color:#38bdf8;display:flex;justify-content:space-between;cursor:pointer}
+.tabs{display:flex;gap:4px}.tb{flex:1;padding:6px 0;border:none;border-radius:5px;font-size:.75rem;font-weight:700;background:#334155;color:#94a3b8;cursor:pointer}.tb.act{background:var(--bl);color:#fff}
+.sz-g{display:grid;grid-template-columns:1fr 1fr;gap:5px}
+.sf{background:#090d16;border:2px solid #334155;border-radius:6px;padding:5px 7px;cursor:pointer}
+.sf.fc{border-color:#38bdf8;background:#0f233a}
+.fl{font-size:.68rem;color:#94a3b8}.fv{font-size:1.1rem;font-weight:700;color:#fff;height:24px}
+.np{display:grid;grid-template-columns:repeat(3,1fr);gap:4px}
+.nb{background:#334155;color:#fff;border:none;border-radius:6px;padding:8px 0;font-size:1.1rem;font-weight:700;cursor:pointer}
+.chips{display:flex;flex-wrap:wrap;gap:4px}
+.chip{padding:5px 8px;border-radius:14px;font-size:.7rem;background:#090d16;border:1px solid #475569;color:#cbd5e1;cursor:pointer}
+.chip.sel{background:#4338ca;border-color:#818cf8;color:#fff;font-weight:700}
+.log{background:#090e1a;border:1px solid var(--bd);border-radius:7px;padding:7px;font-size:.7rem;color:var(--sb);white-space:pre-wrap}
+.p-g{display:grid;grid-template-columns:1fr 1fr 1fr;gap:5px}
+.pc{background:#090e1a;border:1px solid var(--bd);border-radius:7px;padding:5px;text-align:center}
+.pct{font-size:.62rem;color:var(--sb)}.pcv{font-size:.78rem;font-weight:700;color:#38bdf8}
+.ta{width:100%;background:#090e1a;border:1px solid #334155;border-radius:7px;color:#e2e8f0;padding:7px;font-size:.75rem;min-height:110px}
+</style></head>
 <body>
 <div class="wrap">
-  <header>
-    <h1>👕 古着AIリサーチ＆出品PRO</h1>
-    <p>画像鑑定・市場査定・メルカリ出品文生成</p>
-  </header>
+  <div class="cd">
+    <div class="rw"><span style="font-size:.8rem;font-weight:700">🔑 Gemini設定</span><button class="s-btn" onclick="tgl('apiBox')">開く</button></div>
+    <div id="apiBox" style="display:none;gap:4px"><input id="apiKey" class="ipt" placeholder="APIキー"><button class="s-btn" style="background:#0284c7" onclick="saveK()">保存</button></div>
+  </div>
 
-  <section class="card">
-    <div class="row">
-      <span style="font-size:0.85rem;font-weight:700;">🔑 Gemini API設定</span>
-      <button class="btn-sm" onclick="toggleApi()">設定を開く</button>
-    </div>
-    <div id="apiBox" style="display:none;gap:6px;">
-      <input type="text" id="apiKey" class="ipt" placeholder="APIキーを入力">
-      <button class="btn-sm" style="background:#0284c7" onclick="saveKey()">保存</button>
-    </div>
-  </section>
+  <div class="cd">
+    <div class="rw"><span style="font-size:.8rem;font-weight:700">📸 商品写真 (最大4枚)</span><button id="delA" class="s-btn" style="display:none;background:#7f1d1d" onclick="clrImgs()">全消去</button></div>
+    <div class="up" onclick="document.getElementById('fin').click()">📷 タップして写真を選択<input type="file" id="fin" multiple accept="image/*" style="display:none" onchange="ldImgs(this.files)"></div>
+    <div id="thA" class="ths"></div>
 
-  <section class="card">
-    <div class="row">
-      <span style="font-size:0.85rem;font-weight:700;">📸 写真の選択 (最大4枚)</span>
-      <button id="delAllBtn" class="btn-sm btn-del" style="display:none" onclick="clearPhotos()">全消去</button>
+    <div class="acc" onclick="tglSz()"><span>📐 採寸＆状態入力 (任意)</span><span id="szArr">▼</span></div>
+    <div id="szBox" style="display:none;flex-direction:column;gap:6px">
+      <div class="tabs">
+        <button class="tb act" onclick="swCat('tops')">👕トップス</button>
+        <button class="tb" onclick="swCat('pants')">👖パンツ</button>
+        <button class="tb" onclick="swCat('outer')">🧥アウター</button>
+      </div>
+      <div id="szG" class="sz-g"></div>
+      <div class="np">
+        <button class="nb" onclick="inN('1')">1</button><button class="nb" onclick="inN('2')">2</button><button class="nb" onclick="inN('3')">3</button>
+        <button class="nb" onclick="inN('4')">4</button><button class="nb" onclick="inN('5')">5</button><button class="nb" onclick="inN('6')">6</button>
+        <button class="nb" onclick="inN('7')">7</button><button class="nb" onclick="inN('8')">8</button><button class="nb" onclick="inN('9')">9</button>
+        <button class="nb" style="background:#475569;font-size:.9rem" onclick="inN('.')">.</button><button class="nb" onclick="inN('0')">0</button><button class="nb" style="background:#475569;font-size:.9rem" onclick="bsN()">⌫</button>
+      </div>
+      <div style="display:flex;gap:4px">
+        <button class="nb" style="flex:1;background:#475569;font-size:.8rem;padding:6px 0" onclick="clrCur()">C消去</button>
+        <button class="nb" style="flex:2;background:#059669;font-size:.8rem;padding:6px 0" onclick="nxtF()">次へ ➜</button>
+      </div>
+      <span style="font-size:.7rem;color:#38bdf8;font-weight:700">全体コンディション</span>
+      <div class="chips" id="cdChips">
+        <div class="chip sel" onclick="tgS(this)">目立った傷や汚れなし</div><div class="chip" onclick="tgS(this)">やや傷や汚れあり</div><div class="chip" onclick="tgS(this)">ヴィンテージ味あり</div><div class="chip" onclick="tgS(this)">未使用に近い</div>
+      </div>
+      <span style="font-size:.7rem;color:#38bdf8;font-weight:700">特記・ダメージ</span>
+      <div class="chips" id="dmChips">
+        <div class="chip" onclick="this.classList.toggle('sel')">首元微ヨレ</div><div class="chip" onclick="this.classList.toggle('sel')">薄い汚れあり</div><div class="chip" onclick="this.classList.toggle('sel')">ピンホールあり</div><div class="chip" onclick="this.classList.toggle('sel')">スレあり</div><div class="chip" onclick="this.classList.toggle('sel')">フェード良好</div><div class="chip" onclick="this.classList.toggle('sel')">プリント割れ</div>
+      </div>
     </div>
-    <div class="upload" onclick="document.getElementById('fileIn').click()">
-      📷 タップして写真を選択 / 撮影
-      <input type="file" id="fileIn" multiple accept="image/*" style="display:none" onchange="loadFiles(this.files)">
-    </div>
-    <div id="thumbArea" class="thumbs"></div>
 
-    <div style="display:flex;flex-direction:column;gap:4px">
-      <span style="font-size:0.72rem;color:var(--sub)">出品トーン（文体）</span>
-      <select id="tone" class="ipt">
-        <option value="親切・丁寧・誠実（万能・リピート獲得型）">親切・丁寧・誠実（万能・リピート獲得型）</option>
-        <option value="シンプル・要点重視（古着好き向け・短文型）">シンプル・要点重視（古着好き向け・短文型）</option>
-        <option value="ストリート・ヴィンテージ感（熱量高め・高単価型）">ストリート・ヴィンテージ感（熱量高め・高単価型）</option>
-      </select>
-    </div>
-    <button class="btn" onclick="startAppraisal()">⚡ AI市場査定＆出品文を生成</button>
-  </section>
+    <select id="tone" class="ipt">
+      <option value="親切・丁寧・誠実">親切・丁寧・誠実（万能型）</option>
+      <option value="シンプル・要点重視">シンプル・要点重視（短文型）</option>
+      <option value="ストリート・ヴィンテージ感">ストリート・ヴィンテージ（高単価型）</option>
+    </select>
+    <button class="btn" onclick="run()">⚡ AI査定＆出品文を生成</button>
+  </div>
 
   <div id="log" class="log">待機中...</div>
 
-  <section class="card" id="resCard" style="display:none">
-    <div class="row">
-      <span style="font-size:0.85rem;font-weight:700;">📊 市場査定データ</span>
-      <span id="resBrand" style="color:#38bdf8;font-size:0.8rem"></span>
+  <div id="res" class="cd" style="display:none">
+    <div class="rw"><span style="font-size:.8rem;font-weight:700">📊 査定データ</span><span id="rBrd" style="color:#38bdf8;font-size:.75rem"></span></div>
+    <div id="rFt" style="font-size:.72rem;background:#090e1a;padding:5px;border-radius:5px"></div>
+    <div class="p-g">
+      <div class="pc"><div class="pct">メルカリ</div><div class="pcv" id="pM">-</div></div>
+      <div class="pc"><div class="pct">Y!フリマ</div><div class="pcv" id="pY">-</div></div>
+      <div class="pc"><div class="pct">ヤフオク</div><div class="pcv" id="pA">-</div></div>
     </div>
-    <div id="resFeatures" style="font-size:0.75rem;background:#090e1a;padding:6px;border-radius:6px"></div>
-    <div class="grid">
-      <div class="box"><div class="box-t">メルカリ相場</div><div class="box-v" id="pMercari">-</div></div>
-      <div class="box"><div class="box-t">Yahoo!フリマ</div><div class="box-v" id="pYfurima">-</div></div>
-      <div class="box"><div class="box-t">ヤフオク相場</div><div class="box-v" id="pYauc">-</div></div>
+    <div class="rw" style="font-size:.7rem;color:var(--sb)"><span>送料: <b id="rSh" style="color:#fff">-</b></span><span>検索: <b id="rKw" style="color:#38bdf8">-</b></span></div>
+    <div class="p-g">
+      <button class="s-btn" style="background:#ea580c" onclick="sch('m')">メルカリ</button><button class="s-btn" style="background:#c026d3" onclick="sch('y')">Y!フリマ</button><button class="s-btn" style="background:#ca8a04" onclick="sch('a')">ヤフオク</button>
     </div>
-    <div class="row" style="font-size:0.72rem;color:var(--sub)">
-      <span>推奨送料: <b id="resShip" style="color:#fff">-</b></span>
-      <span>検索ワード: <b id="resKw" style="color:#38bdf8">-</b></span>
-    </div>
-    <div class="grid">
-      <button class="btn-sm" style="background:#ea580c" onclick="goSearch('mercari')">メルカリ</button>
-      <button class="btn-sm" style="background:#c026d3" onclick="goSearch('yfurima')">Y!フリマ</button>
-      <button class="btn-sm" style="background:#ca8a04" onclick="goSearch('yauc')">ヤフオク</button>
-    </div>
-    <div style="display:flex;flex-direction:column;gap:4px;margin-top:4px">
-      <div class="row"><span style="font-size:0.72rem;color:var(--sub)">メルカリ推奨タイトル</span><button class="btn-sm" onclick="copyVal('outTitle')">コピー</button></div>
-      <input type="text" id="outTitle" class="ipt" readonly>
-    </div>
-    <div style="display:flex;flex-direction:column;gap:4px">
-      <div class="row"><span style="font-size:0.72rem;color:var(--sub)">メルカリ商品説明文（ハッシュタグ付き）</span><button class="btn-sm" onclick="copyVal('outDesc')">コピー</button></div>
-      <textarea id="outDesc" class="txt-area"></textarea>
-    </div>
-  </section>
+    <div class="rw"><span style="font-size:.7rem;color:var(--sb)">タイトル</span><button class="s-btn" onclick="cp('oT')">コピー</button></div>
+    <input id="oT" class="ipt" readonly>
+    <div class="rw"><span style="font-size:.7rem;color:var(--sb)">出品文（採寸・タグ付）</span><button class="s-btn" onclick="cp('oD')">コピー</button></div>
+    <textarea id="oD" class="ta"></textarea>
+  </div>
 </div>
 
 <script>
-let images = [];
-let targetKw = '';
-
-function setLog(m){ document.getElementById('log').innerText = m; }
-function toggleApi(){ const b = document.getElementById('apiBox'); b.style.display = b.style.display==='none'?'flex':'none'; }
-function saveKey(){
-  const k = document.getElementById('apiKey').value.trim();
-  if(!k) return alert('APIキーを入力してください');
-  localStorage.setItem('furugi_gemini_key', k);
-  alert('保存しました');
-  toggleApi();
-}
-window.onload = () => {
-  const k = localStorage.getItem('furugi_gemini_key') || localStorage.getItem('gemini_api_key') || '';
-  if(k) document.getElementById('apiKey').value = k;
-};
-
-function optImage(file){
-  return new Promise((resolve) => {
-    const r = new FileReader();
-    r.onload = (e) => {
-      const img = new Image();
-      img.onload = () => {
-        let w = img.width, h = img.height;
-        const max = 1200;
-        if(w > max || h > max){
-          if(w > h){ h = Math.round((h * max)/w); w = max; }
-          else{ w = Math.round((w * max)/h); h = max; }
-        }
-        const c = document.createElement('canvas');
-        c.width = w; c.height = h;
-        c.getContext('2d').drawImage(img, 0, 0, w, h);
-        const url = c.toDataURL('image/jpeg', 0.82);
-        resolve({ url, b64: url.split(',')[1] });
-      };
-      img.src = e.target.result;
-    };
-    r.readAsDataURL(file);
+let imgs=[], qKw='', cat='tops', curIdx=0;
+const cats={tops:[{k:'着丈',v:''},{k:'身幅',v:''},{k:'肩幅',v:''},{k:'袖丈',v:''}],pants:[{k:'ウエスト',v:''},{k:'股下',v:''},{k:'股上',v:''},{k:'ワタリ',v:''},{k:'裾幅',v:''}],outer:[{k:'着丈',v:''},{k:'身幅',v:''},{k:'裄丈/肩幅',v:''},{k:'袖丈',v:''}]};
+function setL(m){document.getElementById('log').innerText=m;}
+function tgl(id){let e=document.getElementById(id);e.style.display=e.style.display==='none'?'flex':'none';}
+function tglSz(){let e=document.getElementById('szBox');let d=e.style.display==='none';e.style.display=d?'flex':'none';document.getElementById('szArr').innerText=d?'▲':'▼';}
+function saveK(){let k=document.getElementById('apiKey').value.trim();if(!k)return alert('APIキー入力');localStorage.setItem('furugi_k',k);alert('保存済');tgl('apiBox');}
+window.onload=()=>{let k=localStorage.getItem('furugi_k')||localStorage.getItem('furugi_gemini_key')||'';if(k)document.getElementById('apiKey').value=k;renG();};
+function swCat(c){cat=c;curIdx=0;document.querySelectorAll('.tb').forEach(b=>b.classList.remove('act'));event.target.classList.add('act');renG();}
+function renG(){
+  let g=document.getElementById('szG');g.innerHTML='';
+  cats[cat].forEach((f,i)=>{
+    let d=document.createElement('div');d.className=`sf ${i===curIdx?'fc':''}`;d.onclick=()=>{curIdx=i;renG();};
+    d.innerHTML=`<div class="fl">${f.k}</div><div class="fv">${f.v||'-'}<span style="font-size:.7rem;color:#64748b">${f.v?'cm':''}</span></div>`;
+    g.appendChild(d);
   });
 }
-
-async function loadFiles(files){
-  if(!files || !files.length) return;
-  setLog('⏳ 写真を準備中...');
-  for(const f of Array.from(files)){
-    if(images.length >= 4) break;
-    const res = await optImage(f);
-    images.push(res);
-  }
-  renderThumbs();
-  document.getElementById('fileIn').value = '';
+function inN(c){let f=cats[cat][curIdx];if(c==='.'&&f.v.includes('.'))return;if(f.v.length>=5)return;f.v+=c;renG();}
+function bsN(){let f=cats[cat][curIdx];f.v=f.v.slice(0,-1);renG();}
+function clrCur(){cats[cat][curIdx].v='';renG();}
+function nxtF(){curIdx=(curIdx<cats[cat].length-1)?curIdx+1:0;renG();}
+function tgS(el){el.parentElement.querySelectorAll('.chip').forEach(c=>c.classList.remove('sel'));el.classList.add('sel');}
+function getSzTxt(){
+  let s='【実寸サイズ(平置きcm)】\n';cats[cat].forEach(f=>{s+=`・${f.k}：${f.v?f.v+'cm':'未計測'}\n`;});
+  s+='※多少の誤差はご了承下さい。\n\n【コンディション】\n';
+  let c=document.querySelector('#cdChips .sel');if(c)s+=`ランク：${c.innerText}\n`;
+  let dm=document.querySelectorAll('#dmChips .sel');
+  if(dm.length){dm.forEach(d=>{s+=`・${d.innerText}\n`;});s+='※古着の風合いをご理解の上ご検討下さい。\n';}
+  else{s+='・目立つ破れ等の致命的ダメージはなく良好です。\n';}
+  return s;
 }
-
-function renderThumbs(){
-  const area = document.getElementById('thumbArea');
-  const btn = document.getElementById('delAllBtn');
-  area.innerHTML = '';
-  if(!images.length){ btn.style.display='none'; setLog('写真を選択してください'); return; }
-  btn.style.display = 'inline-block';
-  images.forEach((img, i) => {
-    const d = document.createElement('div');
-    d.className = 'th-wrap';
-    d.innerHTML = `<img src="${img.url}" class="th-img"><div class="th-x" onclick="delOne(${i})">×</div>`;
-    area.appendChild(d);
+function opt(f){
+  return new Promise((res,rej)=>{
+    let r=new FileReader();r.onload=e=>{
+      let m=new Image();m.onload=()=>{
+        let w=m.width,h=m.height,max=1200;
+        if(w>max||h>max){if(w>h){h=Math.round(h*max/w);w=max;}else{w=Math.round(w*max/h);h=max;}}
+        let cv=document.createElement('canvas');cv.width=w;cv.height=h;
+        cv.getContext('2d').drawImage(m,0,0,w,h);
+        let u=cv.toDataURL('image/jpeg',0.82);res({u,b:u.split(',')[1]});
+      };m.onerror=rej;m.src=e.target.result;
+    };r.onerror=rej;r.readAsDataURL(f);
   });
-  setLog(`${images.length}枚選択中`);
 }
-
-function delOne(i){ images.splice(i,1); renderThumbs(); }
-function clearPhotos(){ images=[]; renderThumbs(); }
-
-async function startAppraisal(){
-  const k = document.getElementById('apiKey').value.trim() || localStorage.getItem('furugi_gemini_key');
-  if(!k) return alert('Gemini APIキーを設定してください');
-  if(!images.length) return alert('写真を選択してください');
-
-  const tone = document.getElementById('tone').value;
-  document.getElementById('resCard').style.display = 'none';
-
-  const prompt = `あなたは古着市場のプロ鑑定士です。画像から査定を行い、必ず以下のJSONのみを出力してください。
-【条件】
-1. オールドGAP、USA製、銀タグ等は高額査定に上方修正
-2. listing_template.descriptionの末尾に、メルカリ検索用ハッシュタグ（#ブランド #カテゴリ #年代ディテール #古着男子 等）を半角スペース区切りで5〜8個必ず含めること
-【指定トーン: ${tone}】
-
-{
-  "brand": "ブランド名",
-  "features": "特徴、査定理由",
-  "shipping_fee": 215,
-  "search_keyword": "メルカリ売切検索ワード",
-  "mercari": {"min_price": 0, "max_price": 0},
-  "yahooflea": {"min_price": 0, "max_price": 0},
-  "yahooauc": {"min_price": 0, "max_price": 0},
-  "listing_template": {
-    "title": "SEOメルカリタイトル（40字以内）",
-    "description": "商品説明文と末尾ハッシュタグ"
-  }
-}`;
-
-  const parts = [{ text: prompt }];
-  images.forEach(im => parts.push({ inline_data: { mime_type: 'image/jpeg', data: im.b64 } }));
-
-  // 最新の Gemini 3.6 Flash を指定
-  const model = 'gemini-3.6-flash';
-  setLog(`🔍 ${model} でAI鑑定中...`);
-
-  try {
-    const res = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${k}`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        contents: [{ parts }],
-        generationConfig: { response_mime_type: "application/json" }
-      })
+async function ldImgs(files){
+  if(!files||!files.length)return;setL('⏳ 画像処理中...');
+  for(let f of Array.from(files)){if(imgs.length>=4)break;try{imgs.push(await opt(f));}catch(e){}}
+  renTh();document.getElementById('fin').value='';
+}
+function renTh(){
+  let a=document.getElementById('thA'),b=document.getElementById('delA');a.innerHTML='';
+  if(!imgs.length){b.style.display='none';setL('写真を選択してください');return;}
+  b.style.display='inline-block';
+  imgs.forEach((im,i)=>{
+    let w=document.createElement('div');w.className='tw';
+    w.innerHTML=`<img src="${im.u}" class="ti"><div class="tx" onclick="delI(${i})">×</div>`;a.appendChild(w);
+  });
+  setL(`${imgs.length}枚選択中`);
+}
+function delI(i){imgs.splice(i,1);renTh();}
+function clrImgs(){imgs=[];renTh();}
+async function run(){
+  let k=document.getElementById('apiKey').value.trim()||localStorage.getItem('furugi_k');
+  if(!k)return alert('APIキーを設定してください');if(!imgs.length)return alert('写真を選択してください');
+  document.getElementById('res').style.display='none';
+  let t=document.getElementById('tone').value,szBlock=getSzTxt();
+  let prompt=`古着のプロ鑑定士として画像と採寸情報を基に査定し、純粋なJSONのみ出力せよ。
+1.オールドGAP/USA製/銀タグ等は上方修正
+2.出品文(listing_template.description)内に以下をそのまま組み込むこと：\n${szBlock}
+3.出品文末尾にメルカリ検索用ハッシュタグ(#ブランド #カテゴリ #古着男子 等)を5〜8個付与せよ。指定トーン:${t}
+{"brand":"","features":"","shipping_fee":215,"search_keyword":"","mercari":{"min_price":0,"max_price":0},"yahooflea":{"min_price":0,"max_price":0},"yahooauc":{"min_price":0,"max_price":0},"listing_template":{"title":"40字以内","description":""}}`;
+  let parts=[{text:prompt}];imgs.forEach(m=>parts.push({inline_data:{mime_type:'image/jpeg',data:m.b}}));
+  setL('🔍 gemini-3.6-flash で鑑定中...');
+  try{
+    let resp=await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-3.6-flash:generateContent?key=${k}`,{
+      method:'POST',headers:{'Content-Type':'application/json'},
+      body:JSON.stringify({contents:[{parts}],generationConfig:{response_mime_type:"application/json"}})
     });
-    if(!res.ok){
-      const err = await res.json().catch(()=>null);
-      throw new Error(err?.error?.message || `HTTP ${res.status}`);
-    }
-    const data = await res.json();
-    let txt = data.candidates?.[0]?.content?.parts?.[0]?.text;
-    if(!txt) throw new Error('応答なし');
-    txt = txt.replace(/```json/gi,'').replace(/```/g,'').trim();
-    const s = txt.indexOf('{'), e = txt.lastIndexOf('}');
-    if(s !== -1 && e !== -1) txt = txt.substring(s, e+1);
-    const parsed = JSON.parse(txt);
-
-    document.getElementById('resBrand').innerText = parsed.brand || '';
-    document.getElementById('resFeatures').innerText = parsed.features || '';
-    document.getElementById('pMercari').innerText = `¥${(parsed.mercari?.min_price||0).toLocaleString()}〜${(parsed.mercari?.max_price||0).toLocaleString()}`;
-    document.getElementById('pYfurima').innerText = `¥${(parsed.yahooflea?.min_price||0).toLocaleString()}〜${(parsed.yahooflea?.max_price||0).toLocaleString()}`;
-    document.getElementById('pYauc').innerText = `¥${(parsed.yahooauc?.min_price||0).toLocaleString()}〜${(parsed.yahooauc?.max_price||0).toLocaleString()}`;
-    document.getElementById('resShip').innerText = `¥${parsed.shipping_fee||215}`;
-    targetKw = parsed.search_keyword || parsed.brand || '';
-    document.getElementById('resKw').innerText = targetKw;
-    document.getElementById('outTitle').value = parsed.listing_template?.title || '';
-    document.getElementById('outDesc').value = parsed.listing_template?.description || '';
-
-    document.getElementById('resCard').style.display = 'flex';
-    setLog('✨ 査定および出品文の生成完了！');
-  } catch(err){
-    setLog(`エラー詳細: ${err.message}`);
-  }
+    if(!resp.ok){let e=await resp.json().catch(()=>null);throw new Error(e?.error?.message||`HTTP ${resp.status}`);}
+    let data=await resp.json();let txt=data.candidates?.[0]?.content?.parts?.[0]?.text;if(!txt)throw new Error('応答なし');
+    txt=txt.replace(/```json/gi,'').replace(/```/g,'').trim();
+    let s=txt.indexOf('{'),e=txt.lastIndexOf('}');if(s!==-1&&e!==-1)txt=txt.substring(s,e+1);
+    let p=JSON.parse(txt);
+    document.getElementById('rBrd').innerText=p.brand||'';document.getElementById('rFt').innerText=p.features||'';
+    document.getElementById('pM').innerText=`¥${(p.mercari?.min_price||0).toLocaleString()}〜${(p.mercari?.max_price||0).toLocaleString()}`;
+    document.getElementById('pY').innerText=`¥${(p.yahooflea?.min_price||0).toLocaleString()}〜${(p.yahooflea?.max_price||0).toLocaleString()}`;
+    document.getElementById('pA').innerText=`¥${(p.yahooauc?.min_price||0).toLocaleString()}〜${(p.yahooauc?.max_price||0).toLocaleString()}`;
+    document.getElementById('rSh').innerText=`¥${p.shipping_fee||215}`;
+    qKw=p.search_keyword||p.brand||'';document.getElementById('rKw').innerText=qKw;
+    document.getElementById('oT').value=p.listing_template?.title||'';document.getElementById('oD').value=p.listing_template?.description||'';
+    document.getElementById('res').style.display='flex';setL('✨ 査定・採寸合体・タグ生成完了！');
+  }catch(err){setL('エラー: '+err.message);}
 }
-
-function goSearch(p){
-  if(!targetKw) return alert('検索ワードがありません');
-  const q = encodeURIComponent(targetKw);
-  let u = '';
-  if(p==='mercari') u = `https://jp.mercari.com/search?keyword=${q}&status=sold_out&sort=created_time&order=desc`;
-  if(p==='yfurima') u = `https://paypayfleamarket.yahoo.co.jp/search/${q}?isSoldOut=1`;
-  if(p==='yauc') u = `https://auctions.yahoo.co.jp/closedsearch/closedsearch?p=${q}`;
-  if(u) window.open(url, '_blank');
+function sch(p){
+  if(!qKw)return alert('検索ワードなし');let q=encodeURIComponent(qKw),u='';
+  if(p==='m')u=`https://jp.mercari.com/search?keyword=${q}&status=sold_out&sort=created_time&order=desc`;
+  if(p==='y')u=`https://paypayfleamarket.yahoo.co.jp/search/${q}?isSoldOut=1`;
+  if(p==='a')u=`https://auctions.yahoo.co.jp/closedsearch/closedsearch?p=${q}`;
+  if(u)window.open(u,'_blank');
 }
-
-function copyVal(id){
-  const el = document.getElementById(id);
-  if(!el || !el.value) return;
-  navigator.clipboard.writeText(el.value);
-  alert('コピーしました！');
-}
-</script>
-</body>
-</html>
+function cp(id){let e=document.getElementById(id);if(!e||!e.value)return;navigator.clipboard.writeText(e.value);alert('コピーしました！');}
+</script></body></html>
