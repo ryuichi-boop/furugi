@@ -1,7 +1,7 @@
 <!DOCTYPE html><html lang="ja"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1,user-scalable=no"><title>古着AIリサーチ＆出品PRO</title>
 <style>
 :root{--bg:#0b1329;--cd:#162033;--bd:#1e293b;--tx:#f8fafc;--sb:#94a3b8;--bl:#0284c7;--rd:#ef4444}
-*{box-sizing:border-box;margin:0;padding:0;font-family:-apple-system,BlinkMacSystemFont,sans-serif;-webkit-tap-highlight-color:transparent}
+*{box-sizing:border-box;margin:0;padding:0;font-family:-apple-system,sans-serif;-webkit-tap-highlight-color:transparent}
 body{background:var(--bg);color:var(--tx);padding:10px;line-height:1.4}
 .wrap{max-width:480px;margin:0 auto;display:flex;flex-direction:column;gap:10px}
 .cd{background:var(--cd);border:1px solid var(--bd);border-radius:10px;padding:10px;display:flex;flex-direction:column;gap:8px}
@@ -46,9 +46,9 @@ body{background:var(--bg);color:var(--tx);padding:10px;line-height:1.4}
     <div class="acc" onclick="tglSz()"><span>📐 採寸＆状態入力 (任意)</span><span id="szArr">▼</span></div>
     <div id="szBox" style="display:none;flex-direction:column;gap:6px">
       <div class="tabs">
-        <button class="tb act" onclick="swCat('tops')">👕トップス</button>
-        <button class="tb" onclick="swCat('pants')">👖パンツ</button>
-        <button class="tb" onclick="swCat('outer')">🧥アウター</button>
+        <button class="tb act" onclick="swCat('tops',this)">👕トップス</button>
+        <button class="tb" onclick="swCat('pants',this)">👖パンツ</button>
+        <button class="tb" onclick="swCat('outer',this)">🧥アウター</button>
       </div>
       <div id="szG" class="sz-g"></div>
       <div class="np">
@@ -101,29 +101,30 @@ body{background:var(--bg);color:var(--tx);padding:10px;line-height:1.4}
 </div>
 
 <script>
-let imgs=[], qKw='', cat='tops', curIdx=0;
+let imgs=[], qKw='', curCat='tops', curIdx=0;
 const cats={tops:[{k:'着丈',v:''},{k:'身幅',v:''},{k:'肩幅',v:''},{k:'袖丈',v:''}],pants:[{k:'ウエスト',v:''},{k:'股下',v:''},{k:'股上',v:''},{k:'ワタリ',v:''},{k:'裾幅',v:''}],outer:[{k:'着丈',v:''},{k:'身幅',v:''},{k:'裄丈/肩幅',v:''},{k:'袖丈',v:''}]};
 function setL(m){document.getElementById('log').innerText=m;}
 function tgl(id){let e=document.getElementById(id);e.style.display=e.style.display==='none'?'flex':'none';}
 function tglSz(){let e=document.getElementById('szBox');let d=e.style.display==='none';e.style.display=d?'flex':'none';document.getElementById('szArr').innerText=d?'▲':'▼';}
 function saveK(){let k=document.getElementById('apiKey').value.trim();if(!k)return alert('APIキー入力');localStorage.setItem('furugi_k',k);alert('保存済');tgl('apiBox');}
 window.onload=()=>{let k=localStorage.getItem('furugi_k')||localStorage.getItem('furugi_gemini_key')||'';if(k)document.getElementById('apiKey').value=k;renG();};
-function swCat(c){cat=c;curIdx=0;document.querySelectorAll('.tb').forEach(b=>b.classList.remove('act'));event.target.classList.add('act');renG();}
+function swCat(c,btn){curCat=c;curIdx=0;document.querySelectorAll('.tb').forEach(b=>b.classList.remove('act'));btn.classList.add('act');renG();}
 function renG(){
   let g=document.getElementById('szG');g.innerHTML='';
-  cats[cat].forEach((f,i)=>{
+  cats[curCat].forEach((f,i)=>{
     let d=document.createElement('div');d.className=`sf ${i===curIdx?'fc':''}`;d.onclick=()=>{curIdx=i;renG();};
     d.innerHTML=`<div class="fl">${f.k}</div><div class="fv">${f.v||'-'}<span style="font-size:.7rem;color:#64748b">${f.v?'cm':''}</span></div>`;
     g.appendChild(d);
   });
 }
-function inN(c){let f=cats[cat][curIdx];if(c==='.'&&f.v.includes('.'))return;if(f.v.length>=5)return;f.v+=c;renG();}
-function bsN(){let f=cats[cat][curIdx];f.v=f.v.slice(0,-1);renG();}
-function clrCur(){cats[cat][curIdx].v='';renG();}
-function nxtF(){curIdx=(curIdx<cats[cat].length-1)?curIdx+1:0;renG();}
+function inN(c){let f=cats[curCat][curIdx];if(c==='.'&&f.v.includes('.'))return;if(f.v.length>=5)return;f.v+=c;renG();}
+function bsN(){let f=cats[curCat][curIdx];f.v=f.v.slice(0,-1);renG();}
+function clrCur(){cats[curCat][curIdx].v='';renG();}
+function nxtF(){curIdx=(curIdx<cats[curCat].length-1)?curIdx+1:0;renG();}
 function tgS(el){el.parentElement.querySelectorAll('.chip').forEach(c=>c.classList.remove('sel'));el.classList.add('sel');}
 function getSzTxt(){
-  let s='【実寸サイズ(平置きcm)】\n';cats[cat].forEach(f=>{s+=`・${f.k}：${f.v?f.v+'cm':'未計測'}\n`;});
+  let s='【実寸サイズ(平置きcm)】\n';
+  cats[curCat].forEach(f=>{s+=`・${f.k}：${f.v?f.v+'cm':'未計測'}\n`;});
   s+='※多少の誤差はご了承下さい。\n\n【コンディション】\n';
   let c=document.querySelector('#cdChips .sel');if(c)s+=`ランク：${c.innerText}\n`;
   let dm=document.querySelectorAll('#dmChips .sel');
@@ -168,7 +169,7 @@ async function run(){
   let t=document.getElementById('tone').value,szBlock=getSzTxt();
   let prompt=`古着のプロ鑑定士として画像と採寸情報を基に査定し、純粋なJSONのみ出力せよ。
 1.オールドGAP/USA製/銀タグ等は上方修正
-2.出品文(listing_template.description)内に以下をそのまま組み込むこと：\n${szBlock}
+2.出品文(listing_template.description)内に以下を改変せずそのまま組み込むこと：\n${szBlock}
 3.出品文末尾にメルカリ検索用ハッシュタグ(#ブランド #カテゴリ #古着男子 等)を5〜8個付与せよ。指定トーン:${t}
 {"brand":"","features":"","shipping_fee":215,"search_keyword":"","mercari":{"min_price":0,"max_price":0},"yahooflea":{"min_price":0,"max_price":0},"yahooauc":{"min_price":0,"max_price":0},"listing_template":{"title":"40字以内","description":""}}`;
   let parts=[{text:prompt}];imgs.forEach(m=>parts.push({inline_data:{mime_type:'image/jpeg',data:m.b}}));
