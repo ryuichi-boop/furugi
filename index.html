@@ -178,14 +178,18 @@ async function run(){
 {"brand":"","features":"査定理由や特徴","shipping_fee":215,"search_keyword":"","mercari":{"min_price":0,"max_price":0},"yahooflea":{"min_price":0,"max_price":0},"yahooauc":{"min_price":0,"max_price":0},"listing_template":{"title":"40字以内","intro":"アイテム紹介文","tags":"#タグ"}}`;
 
   let parts=[{text:prompt}];imgs.forEach(m=>parts.push({inline_data:{mime_type:'image/jpeg',data:m.b}}));
-  setL('🔍 gemini-3.6-flash でAI鑑定中...');
+  
+  // ★1日1500回無料の超大容量モデルに変更
+  const model = 'gemini-2.5-flash';
+  setL(`🔍 ${model} でAI鑑定中...`);
 
-  try{
-    let resp=await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-3.6-flash:generateContent?key=${k}`,{
-      method:'POST',headers:{'Content-Type':'application/json'},
-      body:JSON.stringify({
-        contents:[{parts}],
-        generationConfig:{response_mime_type:"application/json"}
+  try {
+    let resp = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${k}`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        contents: [{ parts }],
+        generationConfig: { response_mime_type: "application/json" }
       })
     });
     if(!resp.ok){let e=await resp.json().catch(()=>null);throw new Error(e?.error?.message||`HTTP ${resp.status}`);}
