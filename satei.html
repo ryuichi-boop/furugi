@@ -96,7 +96,7 @@
     <div id="key-msg" style="font-size:11px; color:#4ade80; margin-top:4px; display:none;">✔ キー保存済み</div>
   </div>
 
-  <!-- 写真撮影（タップで純正カメラ起動・広角撮影可能） -->
+  <!-- 写真撮影 -->
   <div class="photo-grid">
     <label class="photo-slot" id="slot-overall">
       <span class="photo-label">📸 ① 全体写真</span>
@@ -177,7 +177,6 @@
       alert('APIキーを端末内に安全に保存しました！');
     }
 
-    // 画像圧縮処理（高速化・容量削減）
     function handleFile(input, type) {
       if (!input.files || !input.files[0]) return;
       const file = input.files[0];
@@ -187,7 +186,7 @@
         const img = new Image();
         img.onload = () => {
           const canvas = document.createElement('canvas');
-          const maxDim = 800; // 最適な解像度に縮小
+          const maxDim = 800;
           let w = img.width, h = img.height;
           if (w > h && w > maxDim) { h = (h * maxDim) / w; w = maxDim; }
           else if (h > maxDim) { w = (w * maxDim) / h; h = maxDim; }
@@ -240,7 +239,7 @@
   "judgment": "仕入れ推奨" または "見送り" または "慎重判断",
   "marketPrice": 3500,
   "profit": 1850,
-  "brandEra": "Ralph Lauren / 90s三角タグ",
+  "brandEra": "XLARGE / 現代モデル",
   "speed": "即売れ(3日以内)" または "普通(2週間)" または "長期化懸念",
   "reason": "相場、需要、利益が取れる/取れない理由を簡潔に2行以内で記述"
 }
@@ -258,7 +257,8 @@
       }
 
       try {
-        const res = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${key}`, {
+        // エラー文の指定に従い gemini-3.8-flash に修正
+        const res = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-3.8-flash:generateContent?key=${key}`, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ contents: [{ parts }] })
@@ -271,7 +271,6 @@
         text = text.replace(/```json/g, '').replace(/```/g, '').trim();
         const parsed = JSON.parse(text);
 
-        // 結果反映
         const banner = document.getElementById('res-banner');
         banner.innerText = parsed.judgment;
         banner.className = 'judgment-banner ' + 
