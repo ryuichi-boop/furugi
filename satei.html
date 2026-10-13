@@ -3,291 +3,380 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-  <title>古着瞬間査定プロ - スピード仕入れ</title>
+  <title>古着瞬間査定 PRO</title>
   <style>
     :root {
       --bg: #0f172a;
-      --card-bg: #1e293b;
-      --accent: #2563eb;
-      --text: #f8fafc;
-      --text-sub: #94a3b8;
-      --success: #16a34a;
-      --warning: #d97706;
-      --danger: #dc2626;
+      --card: #1e293b;
       --border: #334155;
+      --primary: #38bdf8;
+      --text: #f8fafc;
+      --muted: #94a3b8;
+      --success: #22c55e;
+      --danger: #ef4444;
+      --warning: #f59e0b;
     }
-    * { box-sizing: border-box; margin: 0; padding: 0; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; }
-    body { background-color: var(--bg); color: var(--text); padding: 12px; font-size: 14px; max-width: 500px; margin: 0 auto; }
-    
-    header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; }
-    h1 { font-size: 16px; font-weight: bold; }
-
-    .card { background: var(--card-bg); border: 1px solid var(--border); border-radius: 8px; padding: 12px; margin-bottom: 12px; }
-    
-    /* APIキー設定 */
-    .api-sec { display: flex; gap: 8px; align-items: center; }
-    .api-sec input {
-      flex: 1; padding: 8px; background: #0f172a; border: 1px solid var(--border);
-      border-radius: 6px; color: #fff; font-size: 14px;
+    * { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+      background-color: var(--bg);
+      color: var(--text);
+      padding: 16px;
+      line-height: 1.5;
     }
-    .btn-save { padding: 8px 12px; background: var(--accent); color: white; border: none; border-radius: 6px; font-weight: bold; }
-
-    /* 撮影セクション */
-    .photo-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-bottom: 12px; }
-    .photo-slot {
-      border: 2px dashed var(--border); border-radius: 8px; padding: 10px;
-      text-align: center; background: #131d31; cursor: pointer; position: relative;
+    header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 16px;
     }
-    .photo-slot.ready { border-color: var(--success); background: #064e3b22; }
-    .photo-slot img { width: 100%; height: 110px; object-fit: cover; border-radius: 6px; display: none; margin-bottom: 6px; }
-    .photo-label { font-size: 13px; font-weight: bold; display: block; margin-bottom: 4px; }
-    .photo-status { font-size: 11px; color: var(--text-sub); }
-    .photo-slot.ready .photo-status { color: #4ade80; font-weight: bold; }
+    h1 { font-size: 1.25rem; font-weight: 700; color: var(--primary); }
+    .btn-key {
+      background: var(--card);
+      border: 1px solid var(--border);
+      color: var(--muted);
+      padding: 6px 12px;
+      border-radius: 8px;
+      font-size: 0.8rem;
+      cursor: pointer;
+    }
+    .card {
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 16px;
+      margin-bottom: 16px;
+    }
+    .input-group {
+      margin-bottom: 16px;
+    }
+    label {
+      display: block;
+      font-size: 0.85rem;
+      color: var(--muted);
+      margin-bottom: 6px;
+    }
+    input[type="number"] {
+      width: 100%;
+      background: var(--bg);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 12px;
+      color: var(--text);
+      font-size: 1.1rem;
+      font-weight: 700;
+    }
+    .photo-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 12px;
+      margin-bottom: 16px;
+    }
+    .photo-box {
+      border: 2px dashed var(--border);
+      border-radius: 8px;
+      padding: 16px 8px;
+      text-align: center;
+      cursor: pointer;
+      position: relative;
+      background: var(--bg);
+      min-height: 130px;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      align-items: center;
+    }
+    .photo-box.has-img {
+      border-style: solid;
+      border-color: var(--primary);
+      padding: 0;
+      overflow: hidden;
+    }
+    .photo-box img {
+      width: 100%;
+      height: 130px;
+      object-fit: cover;
+    }
+    .photo-box span {
+      font-size: 0.8rem;
+      color: var(--muted);
+    }
     input[type="file"] { display: none; }
-
-    /* 値札・実行 */
-    .price-box { margin-bottom: 12px; }
-    .price-box label { display: block; font-size: 12px; color: var(--text-sub); margin-bottom: 4px; }
-    .price-box input {
-      width: 100%; padding: 10px; background: #0f172a; border: 1px solid var(--border);
-      border-radius: 6px; color: #fff; font-size: 18px; font-weight: bold;
+    .btn-submit {
+      width: 100%;
+      background: var(--primary);
+      color: #000;
+      border: none;
+      border-radius: 8px;
+      padding: 14px;
+      font-size: 1rem;
+      font-weight: 700;
+      cursor: pointer;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      gap: 8px;
     }
-
-    .btn-satei {
-      width: 100%; padding: 14px; background: var(--success); color: white;
-      border: none; border-radius: 8px; font-size: 16px; font-weight: bold;
-      cursor: pointer; box-shadow: 0 4px 6px rgba(0,0,0,0.3);
+    .btn-submit:disabled {
+      opacity: 0.5;
+      cursor: not-allowed;
     }
-    .btn-satei:disabled { background: var(--border); color: var(--text-sub); cursor: not-allowed; }
-
-    /* 判定結果 */
-    #result-sec { display: none; margin-top: 12px; }
-    .judgment-banner {
-      padding: 12px; border-radius: 8px; text-align: center;
-      font-size: 20px; font-weight: 900; margin-bottom: 12px;
+    #resultCard {
+      display: none;
     }
-    .buy { background: #15803d; color: white; }
-    .skip { background: #b91c1c; color: white; }
-    .careful { background: #b45309; color: white; }
-
-    .grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-bottom: 8px; }
-    .data-pill { background: #0f172a; padding: 8px; border-radius: 6px; border: 1px solid var(--border); }
-    .data-pill span { display: block; font-size: 11px; color: var(--text-sub); }
-    .data-pill strong { font-size: 15px; color: #fff; }
-
-    .reason-box { background: #0f172a; padding: 10px; border-radius: 6px; border: 1px solid var(--border); font-size: 13px; line-height: 1.5; }
-    .loading-spinner { text-align: center; padding: 20px; color: var(--text-sub); display: none; }
+    .verdict-badge {
+      display: inline-block;
+      padding: 6px 16px;
+      border-radius: 20px;
+      font-weight: 800;
+      font-size: 1.1rem;
+      margin-bottom: 12px;
+      text-align: center;
+      width: 100%;
+    }
+    .verdict-buy { background: rgba(34, 197, 94, 0.2); color: var(--success); border: 1px solid var(--success); }
+    .verdict-skip { background: rgba(239, 68, 68, 0.2); color: var(--danger); border: 1px solid var(--danger); }
+    .verdict-caution { background: rgba(245, 158, 11, 0.2); color: var(--warning); border: 1px solid var(--warning); }
+    .price-row {
+      display: flex;
+      justify-content: space-between;
+      border-bottom: 1px solid var(--border);
+      padding: 8px 0;
+      font-size: 0.95rem;
+    }
+    .price-val { font-weight: 700; color: var(--primary); }
+    .profit-val { font-weight: 700; color: var(--success); }
+    .reason-box {
+      margin-top: 12px;
+      font-size: 0.85rem;
+      color: var(--text);
+      white-space: pre-wrap;
+      background: var(--bg);
+      padding: 12px;
+      border-radius: 8px;
+    }
   </style>
 </head>
 <body>
 
   <header>
-    <h1>⚡ 古着瞬間査定プロ</h1>
-    <span style="font-size:11px; color:#94a3b8;">純正カメラ連携</span>
+    <h1>⚡ 古着瞬間査定 PRO</h1>
+    <button class="btn-key" onclick="setApiKey()">🔑 APIキー設定</button>
   </header>
 
-  <!-- APIキー設定（伏字・非表示対応） -->
   <div class="card">
-    <div style="font-size:11px; color:var(--text-sub); margin-bottom:4px;">🔑 Gemini APIキー設定</div>
-    <div class="api-sec">
-      <input type="password" id="apiKey" placeholder="••••••••••••••••••••">
-      <button class="btn-save" onclick="saveKey()">保存</button>
-    </div>
-    <div id="key-msg" style="font-size:11px; color:#4ade80; margin-top:4px; display:none;">✔ キー保存済み</div>
-  </div>
-
-  <!-- 写真撮影 -->
-  <div class="photo-grid">
-    <label class="photo-slot" id="slot-overall">
-      <span class="photo-label">📸 ① 全体写真</span>
-      <img id="img-overall" alt="全体写真">
-      <span class="photo-status" id="status-overall">タップして撮影（広角OK）</span>
-      <input type="file" id="file-overall" accept="image/*" capture="environment" onchange="handleFile(this, 'overall')">
-    </label>
-
-    <label class="photo-slot" id="slot-tag">
-      <span class="photo-label">📸 ② タグ写真</span>
-      <img id="img-tag" alt="タグ写真">
-      <span class="photo-status" id="status-tag">タップして撮影（ピント合わせ）</span>
-      <input type="file" id="file-tag" accept="image/*" capture="environment" onchange="handleFile(this, 'tag')">
-    </label>
-  </div>
-
-  <!-- 仕入れ価格入力 -->
-  <div class="card price-box">
-    <label for="cost">店頭値札価格（円）</label>
-    <input type="number" id="cost" placeholder="例: 900" inputmode="numeric">
-  </div>
-
-  <!-- 査定ボタン -->
-  <button class="btn-satei" id="btn-submit" onclick="executeSatei()">🔍 瞬間相場・仕入れ判定</button>
-
-  <div class="loading-spinner" id="loading">
-    ⏳ AIが相場照合・利益計算中...
-  </div>
-
-  <!-- 結果表示 -->
-  <div id="result-sec" class="card">
-    <div class="judgment-banner" id="res-banner">---</div>
-
-    <div class="grid-2">
-      <div class="data-pill">
-        <span>想定売価（相場）</span>
-        <strong id="res-market">¥ -</strong>
-      </div>
-      <div class="data-pill">
-        <span>見込み純利益</span>
-        <strong id="res-profit">¥ -</strong>
-      </div>
+    <div class="input-group">
+      <label for="storePrice">店頭価格 (税込・円)</label>
+      <input type="number" id="storePrice" placeholder="例: 1500" inputmode="numeric">
     </div>
 
-    <div class="grid-2">
-      <div class="data-pill">
-        <span>特定ブランド / 年代</span>
-        <strong id="res-brand" style="font-size:13px;">-</strong>
+    <div class="photo-grid">
+      <div class="photo-box" id="boxItem" onclick="document.getElementById('fileItem').click()">
+        <span id="labelItem">📸 全体写真<br>(前・デザイン)</span>
+        <img id="imgItem" style="display:none;">
       </div>
-      <div class="data-pill">
-        <span>回転速度（売りやすさ）</span>
-        <strong id="res-speed">-</strong>
+      <input type="file" id="fileItem" accept="image/*" capture="environment" onchange="handleImage(this, 'imgItem', 'labelItem', 'boxItem')">
+
+      <div class="photo-box" id="boxTag" onclick="document.getElementById('fileTag').click()">
+        <span id="labelTag">🏷️ タグ写真<br>(ブランド・品質表示)</span>
+        <img id="imgTag" style="display:none;">
       </div>
+      <input type="file" id="fileTag" accept="image/*" capture="environment" onchange="handleImage(this, 'imgTag', 'labelTag', 'boxTag')">
     </div>
 
-    <div class="reason-box" id="res-reason" style="margin-top:8px;">
-      判定理由がここに表示されます。
+    <button class="btn-submit" id="btnSatei" onclick="runAssessment()">瞬間査定を実行</button>
+  </div>
+
+  <div class="card" id="resultCard">
+    <div id="verdictBadge" class="verdict-badge">判定中...</div>
+    <div class="price-row">
+      <span>想定売価 (メルカリ)</span>
+      <span class="price-val" id="resEstPrice">-</span>
     </div>
+    <div class="price-row">
+      <span>見込純利益</span>
+      <span class="profit-val" id="resProfit">-</span>
+    </div>
+    <div class="reason-box" id="resReason"></div>
   </div>
 
   <script>
-    let overallBase64 = null;
+    let itemBase64 = null;
     let tagBase64 = null;
 
-    window.onload = () => {
-      const savedKey = localStorage.getItem('gemini_api_key') || '';
-      if (savedKey) {
-        document.getElementById('apiKey').value = savedKey;
-        document.getElementById('key-msg').style.display = 'block';
+    function setApiKey() {
+      const currentKey = localStorage.getItem('GEMINI_API_KEY') || '';
+      const key = prompt('Google Gemini API Key を入力してください:', currentKey);
+      if (key !== null) {
+        localStorage.setItem('GEMINI_API_KEY', key.trim());
+        alert('APIキーを保存しました');
       }
-    };
-
-    function saveKey() {
-      const val = document.getElementById('apiKey').value.trim();
-      if (!val) { alert('APIキーを入力してください'); return; }
-      localStorage.setItem('gemini_api_key', val);
-      document.getElementById('key-msg').style.display = 'block';
-      alert('APIキーを端末内に安全に保存しました！');
     }
 
-    function handleFile(input, type) {
-      if (!input.files || !input.files[0]) return;
-      const file = input.files[0];
+    function compressImage(file, callback) {
       const reader = new FileReader();
-
-      reader.onload = (e) => {
+      reader.onload = function(e) {
         const img = new Image();
-        img.onload = () => {
-          const canvas = document.createElement('canvas');
+        img.onload = function() {
           const maxDim = 800;
-          let w = img.width, h = img.height;
-          if (w > h && w > maxDim) { h = (h * maxDim) / w; w = maxDim; }
-          else if (h > maxDim) { w = (w * maxDim) / h; h = maxDim; }
-
-          canvas.width = w; canvas.height = h;
-          const ctx = canvas.getContext('2d');
-          ctx.drawImage(img, 0, 0, w, h);
-          const dataUrl = canvas.toDataURL('image/jpeg', 0.8);
-          const base64Data = dataUrl.split(',')[1];
-
-          if (type === 'overall') {
-            overallBase64 = base64Data;
-            document.getElementById('img-overall').src = dataUrl;
-            document.getElementById('img-overall').style.display = 'block';
-            document.getElementById('status-overall').innerText = '✔ 全体画像 登録済';
-            document.getElementById('slot-overall').classList.add('ready');
+          let width = img.width;
+          let height = img.height;
+          if (width > height) {
+            if (width > maxDim) {
+              height = Math.round((height * maxDim) / width);
+              width = maxDim;
+            }
           } else {
-            tagBase64 = base64Data;
-            document.getElementById('img-tag').src = dataUrl;
-            document.getElementById('img-tag').style.display = 'block';
-            document.getElementById('status-tag').innerText = '✔ タグ画像 登録済';
-            document.getElementById('slot-tag').classList.add('ready');
+            if (height > maxDim) {
+              width = Math.round((width * maxDim) / height);
+              height = maxDim;
+            }
           }
+          const canvas = document.createElement('canvas');
+          canvas.width = width;
+          canvas.height = height;
+          const ctx = canvas.getContext('2d');
+          ctx.drawImage(img, 0, 0, width, height);
+          callback(canvas.toDataURL('image/jpeg', 0.7).split(',')[1]);
         };
         img.src = e.target.result;
       };
       reader.readAsDataURL(file);
     }
 
-    async function executeSatei() {
-      const key = localStorage.getItem('gemini_api_key');
-      if (!key) { alert('先にAPIキーを保存してください'); return; }
-      if (!overallBase64) { alert('① 全体写真を撮影してください'); return; }
-
-      const costVal = parseInt(document.getElementById('cost').value, 10) || 0;
-      const loading = document.getElementById('loading');
-      const resSec = document.getElementById('result-sec');
-      const btn = document.getElementById('btn-submit');
-
-      btn.disabled = true;
-      loading.style.display = 'block';
-      resSec.style.display = 'none';
-
-      const prompt = `あなたはメルカリ古着せどりのトッププロ査定員です。
-提供された古着の写真（1枚目: 全体, 2枚目: ブランド/品質表示タグ）と店頭値札価格（${costVal}円）をもとに、瞬時に仕入れ判断を行ってください。
-
-【必須出力フォーマット】
-以下のJSON形式のみで回答してください。余計な挨拶やコードブロックは一切含めないでください。
-{
-  "judgment": "仕入れ推奨" または "見送り" または "慎重判断",
-  "marketPrice": 3500,
-  "profit": 1850,
-  "brandEra": "XLARGE / 現代モデル",
-  "speed": "即売れ(3日以内)" または "普通(2週間)" または "長期化懸念",
-  "reason": "相場、需要、利益が取れる/取れない理由を簡潔に2行以内で記述"
-}
-
-※純利益の計算式：想定売価 × 0.9 - 送料(厚みに応じて215円〜750円) - 店頭値札価格(${costVal}円)`;
-
-      const parts = [{ text: prompt }];
-      parts.push({
-        inlineData: { mimeType: "image/jpeg", data: overallBase64 }
+    function handleImage(input, imgId, labelId, boxId) {
+      if (!input.files || !input.files[0]) return;
+      const file = input.files[0];
+      compressImage(file, function(b64) {
+        if (imgId === 'imgItem') itemBase64 = b64;
+        if (imgId === 'imgTag') tagBase64 = b64;
+        const img = document.getElementById(imgId);
+        img.src = "data:image/jpeg;base64," + b64;
+        img.style.display = 'block';
+        document.getElementById(labelId).style.display = 'none';
+        document.getElementById(boxId).classList.add('has-img');
       });
-      if (tagBase64) {
-        parts.push({
-          inlineData: { mimeType: "image/jpeg", data: tagBase64 }
-        });
+    }
+
+    async function runAssessment() {
+      const apiKey = localStorage.getItem('GEMINI_API_KEY');
+      if (!apiKey) {
+        alert('APIキーが設定されていません。右上の「APIキー設定」から登録してください。');
+        return;
+      }
+      const storePrice = parseInt(document.getElementById('storePrice').value, 10);
+      if (isNaN(storePrice) || storePrice < 0) {
+        alert('店頭価格を入力してください');
+        return;
+      }
+      if (!itemBase64 && !tagBase64) {
+        alert('写真を少なくとも1枚（全体またはタグ）撮影してください');
+        return;
       }
 
+      const btn = document.getElementById('btnSatei');
+      btn.disabled = true;
+      btn.innerText = '査定中... (AI分析中)';
+
+      const resultCard = document.getElementById('resultCard');
+      resultCard.style.display = 'block';
+      const badge = document.getElementById('verdictBadge');
+      badge.className = 'verdict-badge';
+      badge.innerText = '解析中...';
+      document.getElementById('resEstPrice').innerText = '計算中';
+      document.getElementById('resProfit').innerText = '計算中';
+      document.getElementById('resReason').innerText = '相場・タグディテール照合中...';
+
+      const now = new Date();
+      const currentYear = now.getFullYear();
+      const currentMonth = now.getMonth() + 1;
+
+      const promptText = `
+【あなたの役割・ペルソナ】
+あなたは月利100万円以上を継続して叩き出す、冷徹かつ極めて鑑定眼の鋭い「ヴィンテージ古着専業バイヤー兼メルカリ相場アナリスト」です。
+古着業界の歴史、タグの年代判別（50s〜00s）、素材・縫製仕様、メルカリのリアルな成約スピードを骨の髄まで熟知しています。
+
+【絶対行動規範（マインドセット）】
+1. 「疑わしきはスルーせよ（元本割れ・不良在庫化の絶対阻止）」:
+   希望的観測や甘い見立ては一切排除すること。少しでも現行量産品の疑いがある、あるいは回転が鈍いと判断した場合は躊躇なく「見送り」を下せ。
+2. 「ディテール絶対主義」:
+   単なる有名ブランドネームに騙されるな。タグの形状・生産国（USA製等）・ステッチ・生地の経年変化（フェード/ボロ/アタリ）の証拠が確認できない限り、高額査定を禁ずる。
+3. 「メルカリ実需ファースト」:
+   定価ではなく「メルカリで実際に30日以内に即売れする現実的な成約価格」のみを基準とせよ。
+
+【現在時点】: ${currentYear}年${currentMonth}月
+【店頭仕入れ価格】: ${storePrice}円
+
+【ブランド別 高速タグ・年代判定辞書（厳守）】
+※各ブランドは以下のキーワード・特徴に一致するもののみ回収し、現行アジア量産品は即スルーせよ。
+・Eddie Bauer：日の出タグ(50-60s)、黒タグ(70-80s)、白タグUSA製のみ回収。現行緑タグは除外。
+・GAP：小文字gap(70-80s)、銀タグ、90s紺タグ/白タグ(首元小タグ付属)のみ回収。脇腹洗濯タグの現行品は除外。
+・UNIQLO：オールドユニクロ初期タグ(UNIQUE表記/緑タグ)、90s銀タグ(フリース/アウター)、00s紺タグテック系のみ回収。丸タグ/現行赤白タグは除外。
+・Patagonia：白タグ(70s)、デカタグ/三角タグ(80s)、雪なしタグ/波タグ(90s前半)、USA製(®マーク)のみ回収。薄手インナーは除外。
+・Ralph Lauren：RRL、ポロカントリー、70s大文字、ポロスポーツ、開襟シャツ(CALDWELL/CLAYTON/CAMP)、90sビッグ(BLAKE/ANDREW)のみ回収。薄手ビジネスシャツ/現行ポロは除外。
+・NIKE：風車・筆記体・オレンジタグ・紺タグ(70-80s)、90s銀タグ、旧ACGのみ回収。現行プリントタグ/薄手ウェアは除外。
+・Champion：ランタグ・バータグ・たたきタグ(〜70s)、トリコタグ(80s)、90s USA製刺繍タグのリバースウィーブのみ回収。通常アジア製スウェットは除外。
+・Carhartt：ハートタグ・プリント白タグ(〜70s)、USA/メキシコ製のダックアウター(デトロイトJ97/アクティブ/ダブルニーB01)のみ回収。薄手ポケT/現行アジア製は除外。
+・adidas：西ドイツ製/フランス製VENTEX、デサント製トラックJKT、80-90s万国旗タグのみ回収。NEO/現行部活ジャージは除外。
+・L.L.Bean：筆記体タグ、70sブロック体TM表記、カタディンロゴ、バーズアイニット、USA製アウターのみ回収。現行アジア製薄手シャツは除外。
+・THE NORTH FACE：茶タグ(70-80s)、90s USA製黒タグ(ヌプシ/マウンテンライト/デナリ)、SUMMITシリーズのみ回収。韓国ホワイトレーベル/薄手Tシャツは除外。
+・Levi's：Big E、赤耳、内股シングル、80-90s USA製(ボタン裏3桁刻印/ブラックデニム)、SilverTabのみ回収。現行アジア製は除外。
+
+【計算ロジック】
+- 手数料10%、想定送料(薄手220円/厚手520円〜750円)を差し引いた純利益で計算すること。
+- 純利益1,500円以上かつ利益率35%以上なら「買い」
+- 純利益500円〜1,499円なら「慎重」
+- 純利益500円未満、赤字、または上記除外対象の現行品なら「見送り」
+
+必ず以下の純粋なJSON形式のみで回答してください（Markdownのバッククォート不要）:
+{
+  "verdict": "買い" または "慎重" または "見送り",
+  "estimatedPrice": 予想売価の数値(円),
+  "estimatedProfit": 見込純利益の数値(円),
+  "reason": "ブランド・年代・ディテールの根拠と、回収基準/除外理由をプロの視点で端的に記載（100字程度）"
+}
+`;
+
+      const parts = [{ text: promptText }];
+      if (itemBase64) parts.push({ inlineData: { mimeType: "image/jpeg", data: itemBase64 } });
+      if (tagBase64) parts.push({ inlineData: { mimeType: "image/jpeg", data: tagBase64 } });
+
       try {
-        // エラー文の指定に従い gemini-3.8-flash に修正
-        const res = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-3.8-flash:generateContent?key=${key}`, {
+        const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-3.8-flash:generateContent?key=${apiKey}`, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ contents: [{ parts }] })
+          body: JSON.stringify({ contents: [{ parts: parts }] })
         });
 
-        const data = await res.json();
-        if (data.error) throw new Error(data.error.message);
+        if (!response.ok) throw new Error('API呼び出しエラー: ' + response.statusText);
 
-        let text = data.candidates[0].content.parts[0].text;
-        text = text.replace(/```json/g, '').replace(/```/g, '').trim();
-        const parsed = JSON.parse(text);
+        const data = await response.json();
+        let rawText = data.candidates[0].content.parts[0].text;
+        rawText = rawText.replace(/```json/g, '').replace(/```/g, '').trim();
+        const res = JSON.parse(rawText);
 
-        const banner = document.getElementById('res-banner');
-        banner.innerText = parsed.judgment;
-        banner.className = 'judgment-banner ' + 
-          (parsed.judgment.includes('推奨') ? 'buy' : parsed.judgment.includes('見送り') ? 'skip' : 'careful');
+        if (res.verdict === '買い') {
+          badge.className = 'verdict-badge verdict-buy';
+          badge.innerText = '🔥 仕入れ推奨 (買い)';
+        } else if (res.verdict === '慎重') {
+          badge.className = 'verdict-badge verdict-caution';
+          badge.innerText = '⚠️ 慎重判断 (薄利の恐れ)';
+        } else {
+          badge.className = 'verdict-badge verdict-skip';
+          badge.innerText = '⛔ 見送り (スルー)';
+        }
 
-        document.getElementById('res-market').innerText = `¥ ${Number(parsed.marketPrice).toLocaleString()}`;
-        document.getElementById('res-profit').innerText = `¥ ${Number(parsed.profit).toLocaleString()}`;
-        document.getElementById('res-brand').innerText = parsed.brandEra || '不明';
-        document.getElementById('res-speed').innerText = parsed.speed || '不明';
-        document.getElementById('res-reason').innerText = parsed.reason;
+        document.getElementById('resEstPrice').innerText = Number(res.estimatedPrice).toLocaleString() + ' 円';
+        document.getElementById('resProfit').innerText = Number(res.estimatedProfit).toLocaleString() + ' 円';
+        document.getElementById('resReason').innerText = res.reason;
 
-        resSec.style.display = 'block';
       } catch (err) {
-        alert('査定エラーが発生しました: ' + err.message);
+        badge.className = 'verdict-badge verdict-skip';
+        badge.innerText = 'エラー発生';
+        document.getElementById('resReason').innerText = err.message + '\nAPIキーや通信環境を確認してください。';
       } finally {
-        loading.style.display = 'none';
         btn.disabled = false;
+        btn.innerText = '瞬間査定を実行';
       }
     }
   </script>
