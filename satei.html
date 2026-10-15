@@ -65,6 +65,7 @@
       color: var(--text);
       font-size: 1.1rem;
       font-weight: 700;
+      outline: none;
     }
     .photo-grid {
       display: grid;
@@ -205,11 +206,12 @@
     let tagBase64 = null;
 
     function setApiKey() {
-      const currentKey = localStorage.getItem('GEMINI_API_KEY') || '';
+      const currentKey = localStorage.getItem('GEMINI_API_KEY') || localStorage.getItem('furugi_k') || '';
       const key = prompt('Google Gemini API Key を入力してください:', currentKey);
       if (key !== null) {
         localStorage.setItem('GEMINI_API_KEY', key.trim());
-        alert('APIキーを保存しました');
+        localStorage.setItem('furugi_k', key.trim());
+        alert('APIキーをブラウザ内に安全に保存しました');
       }
     }
 
@@ -237,7 +239,7 @@
           canvas.height = height;
           const ctx = canvas.getContext('2d');
           ctx.drawImage(img, 0, 0, width, height);
-          callback(canvas.toDataURL('image/jpeg', 0.7).split(',')[1]);
+          callback(canvas.toDataURL('image/jpeg', 0.75).split(',')[1]);
         };
         img.src = e.target.result;
       };
@@ -259,7 +261,7 @@
     }
 
     async function runAssessment() {
-      const apiKey = localStorage.getItem('GEMINI_API_KEY');
+      const apiKey = localStorage.getItem('GEMINI_API_KEY') || localStorage.getItem('furugi_k');
       if (!apiKey) {
         alert('APIキーが設定されていません。右上の「APIキー設定」から登録してください。');
         return;
@@ -292,21 +294,18 @@
       const currentMonth = now.getMonth() + 1;
 
       const promptText = `
-【あなたの役割・ペルソナ】
+【あなたの役割】
 あなたは月利100万円以上を継続して叩き出す、冷徹かつ極めて鑑定眼の鋭い「ヴィンテージ古着専業バイヤー兼メルカリ相場アナリスト」です。
-古着業界の歴史、タグの年代判別（50s〜00s）、素材・縫製仕様、メルカリのリアルな成約スピードを骨の髄まで熟知しています。
+古着業界の歴史、タグの年代判別（50s〜00s）、素材・縫製仕様、メルカリの成約スピードを骨の髄まで熟知しています。
 
 【基本方針】
-1. 「計算の厳格な客観性」:
-   見込純利益は感情や判定にかかわらず、数式に従って正確に算出して出力すること（見送りの場合でも0円に改ざんしないこと）。
-2. 「ディテール・実需重視」:
-   単なる有名ブランドネームに惑わされず、タグ・生産国・年代・ディテール・生地状態、およびメルカリ上でのリアルな回転スピードをシビアに評価せよ。
+1. 「計算の厳格な客観性」: 見込純利益は数式に従って正確に算出して出力すること（見送りの場合でも0円に改ざんしないこと）。
+2. 「ディテール・実需重視」: 有名ブランド名に惑わされず、タグ・生産国・年代・ディテール・状態、およびメルカリ上のリアルな回転スピードをシビアに評価せよ。
 
 【現在時点】: ${currentYear}年${currentMonth}月
 【店頭仕入れ価格】: ${storePrice}円
 
-【ブランド別 高速タグ・年代判定辞書（厳守）】
-※各ブランドは以下のキーワード・特徴に一致するもののみ回収し、現行アジア量産品は原則除外・慎重とせよ。
+【ブランド別 高速タグ・年代判定辞書】
 ・Eddie Bauer：日の出タグ(50-60s)、黒タグ(70-80s)、白タグUSA製のみ回収。現行緑タグは除外。
 ・GAP：小文字gap(70-80s)、銀タグ、90s紺タグ/白タグ(首元小タグ付属)のみ回収。脇腹洗濯タグの現行品は除外。
 ・UNIQLO：オールドユニクロ初期タグ(UNIQUE表記/緑タグ)、90s銀タグ(フリース/アウター)、00s紺タグテック系のみ回収。丸タグ/現行赤白タグは除外。
@@ -322,19 +321,19 @@
 
 【計算ロジック（厳密計算）】
 - メルカリ販売手数料: 想定売価 × 10%
-- 想定送料: Tシャツ・薄手シャツ・薄手ニット等は220円、スウェット・厚手パンツ・アウター等は520円〜750円
+- 想定送料: Tシャツ・薄手シャツ等は220円、スウェット・厚手パンツ・アウター等は520円〜750円
 - 見込純利益 = 想定売価 - 手数料 - 想定送料 - 店頭仕入れ価格(${storePrice}円)
 
 【判定基準（verdict）】
 - 「買い」: ヴィンテージ・プレ値ディテールに合致し、純利益1,500円以上かつ利益率35%以上で即売れが見込める場合。
-- 「慎重」: 利益は500円以上出るが、現行量産品である、供給過多で回転が遅い恐れがある、または純利益が500円〜1,499円にとどまる場合。
+- 「慎重」: 利益は500円以上出るが、現行量産品、供給過多で回転が遅い恐れがある、または純利益が500円〜1,499円にとどまる場合。
 - 「見送り」: 純利益が500円未満、赤字、または需要低迷・送料負けのリスクが極めて高い場合。
 
-必ず以下の純粋なJSON形式のみで回答してください（Markdownのバッククォート不要）:
+必ず以下のJSON形式のみで出力してください:
 {
-  "verdict": "買い" または "慎重" または "見送り",
-  "estimatedPrice": 予想売価の数値(円),
-  "estimatedProfit": 算出した見込純利益の数値(円),
+  "verdict": "買い",
+  "estimatedPrice": 6500,
+  "estimatedProfit": 3600,
   "reason": "ブランド・年代・ディテール評価と、純利益および判定理由の客観的解説（100字程度）"
 }
 `;
@@ -347,15 +346,25 @@
         const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-3.8-flash:generateContent?key=${apiKey}`, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ contents: [{ parts: parts }] })
+          body: JSON.stringify({
+            contents: [{ parts: parts }],
+            generationConfig: { responseMimeType: "application/json" }
+          })
         });
 
-        if (!response.ok) throw new Error('API呼び出しエラー: ' + response.statusText);
+        if (!response.ok) {
+          const errData = await response.json().catch(() => null);
+          throw new Error(errData?.error?.message || `HTTP ${response.status}`);
+        }
 
         const data = await response.json();
-        let rawText = data.candidates[0].content.parts[0].text;
-        rawText = rawText.replace(/```json/g, '').replace(/```/g, '').trim();
-        const res = JSON.parse(rawText);
+        let rawText = data.candidates?.[0]?.content?.parts?.[0]?.text;
+        if (!rawText) throw new Error('AIからの応答が空でした');
+
+        // 安全なJSON抽出処理（前後の余計なテキストを確実にカット）
+        const jsonMatch = rawText.match(/\{[\s\S]*\}/);
+        if (!jsonMatch) throw new Error('JSONの解析に失敗しました');
+        const res = JSON.parse(jsonMatch[0]);
 
         if (res.verdict === '買い') {
           badge.className = 'verdict-badge verdict-buy';
@@ -375,7 +384,7 @@
       } catch (err) {
         badge.className = 'verdict-badge verdict-skip';
         badge.innerText = 'エラー発生';
-        document.getElementById('resReason').innerText = err.message + '\nAPIキーや通信環境を確認してください。';
+        document.getElementById('resReason').innerText = err.message + '\n※APIキーや通信環境をご確認ください。';
       } finally {
         btn.disabled = false;
         btn.innerText = '瞬間査定を実行';
