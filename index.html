@@ -1,6 +1,6 @@
 <!DOCTYPE html><html lang="ja"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1,user-scalable=no"><title>古着AIリサーチ＆出品PRO</title>
 <style>
-:root{--bg:#0b1329;--cd:#162033;--bd:#1e293b;--tx:#f8fafc;--sb:#94a3b8;--bl:#0284c7;--rd:#ef4444}
+:root{--bg:#0b1329;--cd:#162033;--bd:#1e293b;--tx:#f8fafc;--sb:#94a3b8;--bl:#0284c7;--rd:#ef4444;--gn:#10b981}
 *{box-sizing:border-box;margin:0;padding:0;font-family:-apple-system,sans-serif;-webkit-tap-highlight-color:transparent}
 body{background:var(--bg);color:var(--tx);padding:10px;line-height:1.4}
 .wrap{max-width:480px;margin:0 auto;display:flex;flex-direction:column;gap:10px}
@@ -29,7 +29,7 @@ body{background:var(--bg);color:var(--tx);padding:10px;line-height:1.4}
 .p-g{display:grid;grid-template-columns:1fr 1fr 1fr;gap:5px}
 .pc{background:#090e1a;border:1px solid var(--bd);border-radius:7px;padding:5px;text-align:center}
 .pct{font-size:.62rem;color:var(--sb)}.pcv{font-size:.78rem;font-weight:700;color:#38bdf8}
-.ta{width:100%;background:#090e1a;border:1px solid #334155;border-radius:7px;color:#e2e8f0;padding:7px;font-size:.75rem;min-height:120px}
+.ta{width:100%;background:#090e1a;border:1px solid #334155;border-radius:7px;color:#e2e8f0;padding:7px;font-size:.75rem;min-height:140px}
 </style></head>
 <body>
 <div class="wrap">
@@ -39,7 +39,7 @@ body{background:var(--bg);color:var(--tx);padding:10px;line-height:1.4}
   </div>
 
   <div class="cd">
-    <div class="rw"><span style="font-size:.8rem;font-weight:700">📸 商品写真 (最大4枚)</span><button id="delA" class="s-btn" style="display:none;background:#7f1d1d" onclick="clrImgs()">全消去</button></div>
+    <div class="rw"><span style="font-size:.8rem;font-weight:700">📸 商品写真 (1〜4枚)</span><button id="delA" class="s-btn" style="display:none;background:#7f1d1d" onclick="clrImgs()">全消去</button></div>
     <div class="up" onclick="document.getElementById('fin').click()">📷 タップして写真を選択<input type="file" id="fin" multiple accept="image/*" style="display:none" onchange="ldImgs(this.files)"></div>
     <div id="thA" class="ths"></div>
 
@@ -72,9 +72,9 @@ body{background:var(--bg);color:var(--tx);padding:10px;line-height:1.4}
     </div>
 
     <select id="tone" class="ipt">
+      <option value="ストリート・ヴィンテージ感">ストリート・ヴィンテージ（高単価プロ型）</option>
       <option value="親切・丁寧・誠実">親切・丁寧・誠実（万能型）</option>
       <option value="シンプル・要点重視">シンプル・要点重視（短文型）</option>
-      <option value="ストリート・ヴィンテージ感">ストリート・ヴィンテージ（高単価型）</option>
     </select>
     <button class="btn" onclick="run()">⚡ AI査定＆出品文を生成</button>
   </div>
@@ -89,13 +89,16 @@ body{background:var(--bg);color:var(--tx);padding:10px;line-height:1.4}
       <div class="pc"><div class="pct">Y!フリマ</div><div class="pcv" id="pY">-</div></div>
       <div class="pc"><div class="pct">ヤフオク</div><div class="pcv" id="pA">-</div></div>
     </div>
-    <div class="rw" style="font-size:.7rem;color:var(--sb)"><span>送料: <b id="rSh" style="color:#fff">-</b></span><span>検索: <b id="rKw" style="color:#38bdf8">-</b></span></div>
+    <div class="rw" style="font-size:.7rem;color:var(--sb)"><span>推定送料: <b id="rSh" style="color:#fff">-</b></span><span>検索キー: <b id="rKw" style="color:#38bdf8">-</b></span></div>
     <div class="p-g">
       <button class="s-btn" style="background:#ea580c" onclick="sch('m')">メルカリ</button><button class="s-btn" style="background:#c026d3" onclick="sch('y')">Y!フリマ</button><button class="s-btn" style="background:#ca8a04" onclick="sch('a')">ヤフオク</button>
     </div>
-    <div class="rw"><span style="font-size:.7rem;color:var(--sb)">タイトル</span><button class="s-btn" onclick="cp('oT')">コピー</button></div>
+    
+    <button class="btn" style="background:var(--gn);padding:7px;font-size:.8rem" onclick="cpAll()">📋 ⚡ タイトル＆説明文を一括コピー</button>
+
+    <div class="rw"><span style="font-size:.7rem;color:var(--sb)">タイトル (最大40字)</span><button class="s-btn" onclick="cp('oT')">コピー</button></div>
     <input id="oT" class="ipt" readonly>
-    <div class="rw"><span style="font-size:.7rem;color:var(--sb)">出品文（採寸・タグ付）</span><button class="s-btn" onclick="cp('oD')">コピー</button></div>
+    <div class="rw"><span style="font-size:.7rem;color:var(--sb)">出品文（採寸・タグ・提案付）</span><button class="s-btn" onclick="cp('oD')">コピー</button></div>
     <textarea id="oD" class="ta"></textarea>
   </div>
 </div>
@@ -126,11 +129,11 @@ function tgS(el){el.parentElement.querySelectorAll('.chip').forEach(c=>c.classLi
 function buildDirectSizeBlock(){
   let s='【実寸サイズ(平置きcm)】\n';
   cats[curCat].forEach(f=>{s+=`・${f.k}：${f.v?f.v+'cm':'未計測'}\n`;});
-  s+='※多少の誤差はご了承下さい。\n\n【コンディション】\n';
-  let c=document.querySelector('#cdChips .sel');if(c)s+=`ランク：${c.innerText}\n`;
+  s+='※多少の誤差はご容赦ください。\n\n【コンディション】\n';
+  let c=document.querySelector('#cdChips .sel');if(c)s+=`状態ランク：${c.innerText}\n`;
   let dm=document.querySelectorAll('#dmChips .sel');
-  if(dm.length){dm.forEach(d=>{s+=`・${d.innerText}\n`;});s+='※古着の風合いをご理解の上ご検討下さい。\n';}
-  else{s+='・目立つ破れ等の致命的ダメージはなく良好です。\n';}
+  if(dm.length){dm.forEach(d=>{s+=`・${d.innerText}\n`;});s+='※ヴィンテージ・古着特有の風合いをご理解の上ご購入ください。\n';}
+  else{s+='・目立つ破れ等の致命的ダメージはなく、良好なコンディションです。\n';}
   return s;
 }
 
@@ -171,17 +174,32 @@ async function run(){
   document.getElementById('res').style.display='none';
   let t=document.getElementById('tone').value;
 
-  let prompt=`あなたは古着市場のプロ鑑定士です。画像に写っているブランド・タグ・デザインから市場相場を査定し、純粋なJSONのみ出力せよ。
-1.オールドGAP/USA製/銀タグ等は上方修正
-2.商品説明文(listing_template.intro)はアイテムの魅力・特徴・着こなし提案を記載せよ。指定トーン:${t}
-3.listing_template.tagsにはメルカリ検索用ハッシュタグ(#ブランド #カテゴリ #古着男子 等)を5〜8個、半角スペース区切りで出力せよ。
-{"brand":"","features":"査定理由や特徴","shipping_fee":215,"search_keyword":"","mercari":{"min_price":0,"max_price":0},"yahooflea":{"min_price":0,"max_price":0},"yahooauc":{"min_price":0,"max_price":0},"listing_template":{"title":"40字以内","intro":"アイテム紹介文","tags":"#タグ"}}`;
+  let prompt=`あなたは古着市場で月利100万円以上を稼ぎ出すプロバイヤー兼鑑定士です。
+画像からブランド・年代タグ・縫製・ディテール(USA製/日本製、企業ロゴ、フェード、リブ仕様など)を極限まで読み取り、市場の最高値相場を査定し純粋なJSONのみ出力してください。
+
+【厳格出力ルール】
+1. タイトル(listing_template.title):
+   - 全角35〜40文字以内（文字数制限を使い切る）。
+   - 構成: 【フックキーワード】+ ブランド + アイテム名 + 年代/生産国 + カラー/サイズ
+   - 例: 【希少・80s】オールドアシックス トラックジャケット ジャージ 黒 日本製 L
+   - フック例: 【企業モノ】【USA製】【好配色】【肉厚】【オールドGAP】【極太バギー】など
+2. 相場査定:
+   - 投げ売り価格ではなく、写真と説明文を仕上げた状態で2〜3週間以内に売れる高めの適正相場を算出。
+3. 商品紹介文(listing_template.intro):
+   - アイテムの持つ歴史・ディテールの魅力と、太めパンツや古着mixなど相性の良いスタイリング提案を記載。トーン:${t}
+4. 推定送料(shipping_fee):
+   - 薄手Tシャツ/シャツ: 215〜220 (ゆうパケットポスト等)
+   - 厚手スウェット/パンツ: 520 (宅急便コンパクト等)
+   - 重アウター/ジャケット: 750 (宅急便60〜80)
+5. タグ(listing_template.tags):
+   - 検索流入を高めるメルカリハッシュタグを6〜8個（#ブランド #カテゴリ #古着男子 等、半角スペース区切り）。
+
+{"brand":"","features":"年代やディテールの鑑定根拠","shipping_fee":220,"search_keyword":"検索用コアワード","mercari":{"min_price":0,"max_price":0},"yahooflea":{"min_price":0,"max_price":0},"yahooauc":{"min_price":0,"max_price":0},"listing_template":{"title":"40字以内タイトル","intro":"アイテム紹介と着こなし提案文","tags":"#タグ"}}`;
 
   let parts=[{text:prompt}];imgs.forEach(m=>parts.push({inline_data:{mime_type:'image/jpeg',data:m.b}}));
   
-  // ★Google公式指定の最新標準モデル
   const model = 'gemini-3.8-flash';
-  setL(`🔍 ${model} でAI鑑定中...`);
+  setL(`🔍 ${model} でプロ鑑定＆出品構成中...`);
 
   try {
     let resp = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${k}`, {
@@ -202,7 +220,7 @@ async function run(){
     document.getElementById('pM').innerText=`¥${(p.mercari?.min_price||0).toLocaleString()}〜${(p.mercari?.max_price||0).toLocaleString()}`;
     document.getElementById('pY').innerText=`¥${(p.yahooflea?.min_price||0).toLocaleString()}〜${(p.yahooflea?.max_price||0).toLocaleString()}`;
     document.getElementById('pA').innerText=`¥${(p.yahooauc?.min_price||0).toLocaleString()}〜${(p.yahooauc?.max_price||0).toLocaleString()}`;
-    document.getElementById('rSh').innerText=`¥${p.shipping_fee||215}`;
+    document.getElementById('rSh').innerText=`¥${p.shipping_fee||220}`;
     qKw=p.search_keyword||p.brand||'';document.getElementById('rKw').innerText=qKw;
     document.getElementById('oT').value=p.listing_template?.title||'';
 
@@ -210,7 +228,7 @@ async function run(){
     let intro = p.listing_template?.intro || p.listing_template?.description || '';
     let tags = p.listing_template?.tags || '';
 
-    let finalDesc = `${intro}\n\n${mySizeBlock}\n${tags}`.trim();
+    let finalDesc = `◆ ご覧いただきありがとうございます ◆\n即購入OK・24時間以内のスピード発送を心がけております。\n\n${intro}\n\n${mySizeBlock}\n${tags}`.trim();
     document.getElementById('oD').value = finalDesc;
 
     document.getElementById('res').style.display='flex';setL('✨ 査定・採寸合体・タグ生成完了！');
@@ -225,4 +243,11 @@ function sch(p){
   if(u)window.open(u,'_blank');
 }
 function cp(id){let e=document.getElementById(id);if(!e||!e.value)return;navigator.clipboard.writeText(e.value);alert('コピーしました！');}
+function cpAll(){
+  let t=document.getElementById('oT').value;
+  let d=document.getElementById('oD').value;
+  if(!t&&!d)return alert('コピーするデータがありません');
+  navigator.clipboard.writeText(`${t}\n\n${d}`);
+  alert('タイトルと説明文を一括コピーしました！');
+}
 </script></body></html>
