@@ -3,48 +3,94 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
-  <title>古着瞬間査定Pro</title>
+  <title>古着瞬間査定Pro v2</title>
   <style>
     :root {
-      --bg-color: #0f172a; --panel-bg: #1e293b; --text-main: #f8fafc;
-      --text-muted: #94a3b8; --accent-color: #3b82f6; --scan-frame: #ef4444;
-      --success: #22c55e; --warning: #eab308; --danger: #ef4444;
+      --bg-color: #0f172a; /* slate-900 */
+      --panel-bg: #1e293b; /* slate-800 */
+      --text-main: #f8fafc; /* slate-50 */
+      --text-muted: #94a3b8; /* slate-400 */
+      --accent-color: #3b82f6; /* blue-500 */
+      --scan-frame: #ef4444; /* red-500 */
+      --success: #22c55e; /* green-500 */
+      --warning: #eab308; /* yellow-500 */
+      --danger: #ef4444; /* red-500 */
+      --mercari: #ea3323; /* Mercari Red */
     }
+
     * { box-sizing: border-box; margin: 0; padding: 0; }
     html, body {
-      width: 100%; height: 100%; background-color: var(--bg-color);
-      color: var(--text-main); font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+      width: 100%; height: 100%;
+      background-color: var(--bg-color); color: var(--text-main);
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
       overflow-x: hidden;
     }
+
+    /* Header */
     header {
-      position: fixed; top: 0; left: 0; right: 0; height: 60px; display: flex;
-      justify-content: space-between; align-items: center; padding: 0 16px;
-      background: linear-gradient(to bottom, rgba(15,23,42,0.9), transparent); z-index: 100;
+      position: fixed; top: 0; left: 0; right: 0; height: 60px;
+      display: flex; justify-content: space-between; align-items: center; padding: 0 16px;
+      background: linear-gradient(to bottom, rgba(15,23,42,0.95), transparent);
+      z-index: 100; pointer-events: auto;
     }
-    header h1 { font-size: 18px; font-weight: bold; letter-spacing: 1px; text-shadow: 0 2px 4px rgba(0,0,0,0.8); }
+    header h1 { font-size: 18px; font-weight: bold; text-shadow: 0 2px 4px rgba(0,0,0,0.8); }
     .settings-btn { background: none; border: none; color: white; font-size: 24px; cursor: pointer; padding: 8px; }
+
+    /* Scanner View */
     .scanner-container {
       position: fixed; top: 0; left: 0; width: 100vw; height: 100vh;
       display: flex; justify-content: center; align-items: center; background-color: #000;
-      z-index: 10; cursor: pointer;
+      z-index: 10; cursor: pointer; flex-direction: column;
     }
     #camera-stream { position: absolute; width: 100%; height: 100%; object-fit: cover; }
-    .overlay { position: absolute; width: 100%; height: 100%; pointer-events: none; display: flex; justify-content: center; align-items: center; }
+    
+    .step-guide {
+      position: absolute; top: 80px; left: 50%; transform: translateX(-50%);
+      background: rgba(15,23,42,0.85); padding: 10px 20px; border-radius: 99px;
+      font-size: 15px; font-weight: bold; color: var(--warning);
+      border: 1px solid var(--warning); z-index: 20; white-space: nowrap; text-shadow: 0 1px 2px rgba(0,0,0,0.8);
+    }
+
+    .overlay {
+      position: absolute; width: 100%; height: 100%; pointer-events: none;
+      display: flex; justify-content: center; align-items: center; z-index: 15;
+    }
     .scan-frame {
-      width: 280px; height: 180px; border: 3px solid var(--scan-frame);
-      border-radius: 16px; box-shadow: 0 0 0 9999px rgba(0,0,0,0.65); position: relative;
+      width: 280px; height: 180px; border: 3px solid var(--scan-frame); border-radius: 16px;
+      box-shadow: 0 0 0 9999px rgba(0,0,0,0.65); position: relative; display: none;
     }
     .scan-frame::after {
       content: 'タグを枠内に収めてください'; position: absolute; bottom: -30px; left: 0; right: 0;
-      text-align: center; color: rgba(255,255,255,0.8); font-size: 12px; font-weight: bold;
+      text-align: center; color: rgba(255,255,255,0.9); font-size: 12px; font-weight: bold; text-shadow: 0 1px 2px rgba(0,0,0,1);
     }
+
+    /* Thumbnails */
+    .thumbnail-bar {
+      position: absolute; top: 130px; left: 16px; display: flex; flex-direction: column; gap: 12px; z-index: 20;
+    }
+    .thumb-item {
+      width: 60px; height: 80px; border-radius: 8px; border: 2px solid white;
+      background-color: rgba(255,255,255,0.1); background-size: cover; background-position: center;
+      display: none; position: relative; box-shadow: 0 4px 6px rgba(0,0,0,0.5);
+    }
+    .thumb-item::before {
+      content: '🔄'; position: absolute; top: -8px; right: -8px; background: var(--panel-bg);
+      border-radius: 50%; font-size: 12px; padding: 4px; box-shadow: 0 2px 4px rgba(0,0,0,0.5);
+    }
+    .thumb-label {
+      position: absolute; bottom: -20px; left: 0; right: 0; text-align: center; font-size: 10px; font-weight: bold; text-shadow: 0 1px 2px black;
+    }
+
+    /* Bottom Controls */
     .bottom-controls {
-      position: fixed; bottom: 0; left: 0; right: 0; padding: 16px;
-      padding-bottom: calc(16px + env(safe-area-inset-bottom, 16px));
-      background: linear-gradient(to top, rgba(15,23,42,1) 40%, transparent);
+      position: fixed; bottom: 0; left: 0; right: 0;
+      padding: 16px; padding-bottom: calc(16px + env(safe-area-inset-bottom, 16px));
+      background: linear-gradient(to top, rgba(15,23,42,1) 50%, transparent);
       z-index: 100; display: flex; flex-direction: column; gap: 14px;
     }
-    .categories { display: flex; gap: 10px; overflow-x: auto; padding-bottom: 4px; scrollbar-width: none; -webkit-overflow-scrolling: touch; }
+    .categories {
+      display: flex; gap: 10px; overflow-x: auto; padding-bottom: 4px; scrollbar-width: none; -webkit-overflow-scrolling: touch;
+    }
     .categories::-webkit-scrollbar { display: none; }
     .category-btn {
       flex: 0 0 auto; padding: 10px 18px; border-radius: 99px;
@@ -52,93 +98,123 @@
       color: var(--text-muted); font-size: 14px; font-weight: bold; cursor: pointer;
     }
     .category-btn.active { background-color: var(--text-main); color: var(--bg-color); border-color: var(--text-main); }
+    
     .action-bar { display: flex; gap: 12px; }
     .btn-main {
       flex: 1; padding: 16px; border-radius: 12px; background-color: var(--accent-color); color: white;
       font-size: 16px; font-weight: bold; border: none; display: flex; justify-content: center; align-items: center; cursor: pointer;
+      box-shadow: 0 4px 6px rgba(0,0,0,0.3); transition: background-color 0.2s;
     }
     .btn-main:active { transform: scale(0.98); }
+    .btn-main.step2 { background-color: #f59e0b; } /* amber-500 */
+    .btn-main.step3 { background-color: var(--success); }
     .btn-sub {
       width: 54px; height: 54px; border-radius: 12px; background-color: var(--panel-bg); color: white;
       border: 1px solid var(--text-muted); display: flex; justify-content: center; align-items: center; font-size: 20px; cursor: pointer;
     }
     #file-input { display: none; }
+
+    /* Result Sheet */
     .result-sheet {
       position: fixed; bottom: 0; left: 0; right: 0; background-color: var(--panel-bg);
       border-top-left-radius: 24px; border-top-right-radius: 24px; padding: 16px 20px 40px;
-      z-index: 200; transform: translateY(105%); transition: transform 0.28s cubic-bezier(0.16, 1, 0.3, 1);
-      max-height: 82vh; overflow-y: auto; -webkit-overflow-scrolling: touch; box-shadow: 0 -8px 30px rgba(0,0,0,0.7);
+      z-index: 200; transform: translateY(105%); transition: transform 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+      max-height: 85vh; overflow-y: auto; -webkit-overflow-scrolling: touch; box-shadow: 0 -8px 30px rgba(0,0,0,0.7);
     }
     .result-sheet.show { transform: translateY(0); }
-    .sheet-header-actions { display: flex; flex-direction: column; align-items: center; gap: 12px; margin-bottom: 16px; }
-    .close-handle { width: 48px; height: 5px; background-color: var(--text-muted); border-radius: 99px; opacity: 0.6; }
+    .sheet-header-actions { margin-bottom: 20px; }
     .btn-next-scan {
-      width: 100%; padding: 13px; border-radius: 12px; background-color: #334155; color: #f8fafc;
-      border: 1px solid #475569; font-size: 15px; font-weight: bold; display: flex; justify-content: center; align-items: center; gap: 6px; cursor: pointer;
+      width: 100%; padding: 14px; border-radius: 12px; background-color: #334155; color: #f8fafc;
+      border: 1px solid #475569; font-size: 16px; font-weight: bold; display: flex; justify-content: center; align-items: center; gap: 8px; cursor: pointer; box-shadow: 0 4px 6px rgba(0,0,0,0.2);
     }
-    .btn-next-scan:active { background-color: #475569; transform: scale(0.99); }
-    .badge { display: inline-block; padding: 6px 14px; border-radius: 8px; font-weight: bold; font-size: 15px; margin-bottom: 16px; }
+    .btn-next-scan:active { background-color: #475569; transform: scale(0.98); }
+
+    .header-row { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 16px; }
+    .badge { display: inline-block; padding: 6px 14px; border-radius: 8px; font-weight: bold; font-size: 16px; }
     .badge.green { background-color: rgba(34,197,94,0.2); color: var(--success); border: 1px solid var(--success); }
     .badge.yellow { background-color: rgba(234,179,8,0.2); color: var(--warning); border: 1px solid var(--warning); }
     .badge.red { background-color: rgba(239,68,68,0.2); color: var(--danger); border: 1px solid var(--danger); }
+    .item-title { font-size: 15px; font-weight: bold; color: #e2e8f0; margin-bottom: 12px; line-height: 1.4; border-bottom: 1px solid #334155; padding-bottom: 8px;}
+
+    /* Mercari Search Block */
+    .mercari-block { background: rgba(234, 51, 35, 0.1); border: 1px solid rgba(234, 51, 35, 0.3); border-radius: 12px; padding: 16px; margin-bottom: 20px; }
+    .mercari-label { font-size: 12px; color: #fca5a5; margin-bottom: 8px; font-weight: bold; }
+    .mercari-keyword { font-size: 15px; font-weight: bold; margin-bottom: 12px; color: white; background: rgba(0,0,0,0.3); padding: 8px; border-radius: 6px; word-break: break-all; }
+    .mercari-actions { display: flex; gap: 10px; }
+    .btn-mercari { flex: 2; background-color: var(--mercari); color: white; text-decoration: none; padding: 12px; border-radius: 8px; text-align: center; font-weight: bold; font-size: 14px; display: block; box-shadow: 0 2px 4px rgba(0,0,0,0.3); }
+    .btn-copy { flex: 1; background-color: transparent; border: 1px solid #fca5a5; color: #fca5a5; border-radius: 8px; font-weight: bold; cursor: pointer; }
+
     .summary-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 16px; }
-    .summary-item { background: rgba(0,0,0,0.25); padding: 12px; border-radius: 8px; }
+    .summary-item { background: rgba(0,0,0,0.25); padding: 10px; border-radius: 8px; }
     .summary-label { font-size: 11px; color: var(--text-muted); margin-bottom: 4px; }
-    .summary-val { font-size: 14px; font-weight: bold; }
+    .summary-val { font-size: 13px; font-weight: bold; }
+
     .price-box { border: 1px solid #475569; border-radius: 12px; padding: 16px; margin-bottom: 16px; background: rgba(15,23,42,0.4); }
     .price-row { display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px; }
     .price-row:last-child { margin-bottom: 0; }
     .price-row.highlight { border-top: 1px dashed #475569; padding-top: 10px; margin-top: 10px; }
-    .input-group { margin-top: 14px; }
+    
+    .input-group { margin-top: 16px; }
     .input-group label { display: block; font-size: 12px; color: var(--text-muted); margin-bottom: 6px; }
-    .store-price-input {
-      width: 100%; background: var(--bg-color); color: white; border: 1px solid var(--accent-color);
-      border-radius: 8px; padding: 12px; font-size: 16px; font-weight: bold; outline: none;
-    }
-    .profit-results {
-      margin-top: 12px; display: flex; justify-content: space-between;
-      background: rgba(59,130,246,0.12); padding: 12px 16px; border-radius: 8px; border: 1px solid rgba(59,130,246,0.3);
-    }
-    .profit-val { font-size: 18px; font-weight: bold; color: var(--accent-color); }
+    .store-price-input { width: 100%; background: var(--bg-color); color: white; border: 1px solid var(--accent-color); border-radius: 8px; padding: 14px; font-size: 18px; font-weight: bold; outline: none; }
+
+    .profit-results { margin-top: 12px; display: flex; justify-content: space-between; background: rgba(59,130,246,0.12); padding: 16px; border-radius: 8px; border: 1px solid rgba(59,130,246,0.3); }
+    .profit-val { font-size: 20px; font-weight: bold; color: var(--accent-color); }
+
+    /* Tech Intervention Card */
+    .tech-card { background: linear-gradient(145deg, #1e293b, #0f172a); border: 1px solid #475569; border-radius: 12px; padding: 16px; margin-top: 20px; margin-bottom: 20px;}
+    .tech-title { font-size: 14px; font-weight: bold; margin-bottom: 12px; color: #fbbf24; display: flex; align-items: center; gap: 6px; }
+    .tech-item { margin-bottom: 12px; }
+    .tech-item:last-child { margin-bottom: 0; border-bottom: none; padding-bottom: 0;}
+    .tech-label { display: inline-block; background: #334155; padding: 2px 8px; border-radius: 4px; font-size: 10px; font-weight: bold; color: #cbd5e1; margin-bottom: 4px; }
+    .tech-desc { font-size: 13px; color: #f1f5f9; line-height: 1.5; }
+
     .section-title { font-size: 13px; font-weight: bold; margin: 18px 0 8px; border-left: 3px solid var(--accent-color); padding-left: 8px; color: #e2e8f0; }
-    ul.upside-list { padding-left: 20px; margin-bottom: 16px; }
-    ul.upside-list li { font-size: 13px; margin-bottom: 6px; color: #cbd5e1; line-height: 1.4; }
-    .reason-text { font-size: 13px; line-height: 1.5; color: #cbd5e1; }
-    .modal {
-      position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; background: rgba(0,0,0,0.8);
-      z-index: 300; display: none; justify-content: center; align-items: center; padding: 20px;
-    }
+    .reason-text { font-size: 13px; line-height: 1.6; color: #cbd5e1; background: rgba(0,0,0,0.2); padding: 12px; border-radius: 8px; }
+
+    /* Modals & Loaders */
+    .modal { position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; background: rgba(0,0,0,0.8); z-index: 300; display: none; justify-content: center; align-items: center; padding: 20px; }
     .modal-content { background: var(--panel-bg); width: 100%; max-width: 400px; padding: 24px; border-radius: 16px; }
     .modal-title { font-size: 16px; font-weight: bold; margin-bottom: 16px; }
     .api-input { width: 100%; padding: 12px; border-radius: 8px; border: 1px solid var(--text-muted); background: var(--bg-color); color: white; margin-bottom: 16px; font-size: 14px; }
     .btn-save { width: 100%; padding: 12px; border-radius: 8px; background: var(--accent-color); color: white; border: none; font-weight: bold; cursor: pointer; }
-    .loader {
-      display: none; position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%);
-      background: rgba(30,41,59,0.95); padding: 24px 32px; border-radius: 16px; z-index: 400;
-      flex-direction: column; align-items: center; box-shadow: 0 10px 25px rgba(0,0,0,0.5);
-    }
+
+    .loader { display: none; position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%); background: rgba(30,41,59,0.95); padding: 24px 32px; border-radius: 16px; z-index: 400; flex-direction: column; align-items: center; box-shadow: 0 10px 25px rgba(0,0,0,0.5); }
     .spinner { width: 40px; height: 40px; border: 4px solid rgba(255,255,255,0.1); border-top-color: var(--accent-color); border-radius: 50%; animation: spin 1s linear infinite; margin-bottom: 14px; }
     @keyframes spin { to { transform: rotate(360deg); } }
-    .toast {
-      position: fixed; top: 20px; left: 50%; transform: translateX(-50%); background: var(--danger);
-      color: white; padding: 12px 24px; border-radius: 8px; font-weight: bold; font-size: 14px;
-      z-index: 500; display: none; box-shadow: 0 4px 12px rgba(0,0,0,0.3); max-width: 90vw; text-align: center;
-    }
+    
+    .toast { position: fixed; top: 20px; left: 50%; transform: translateX(-50%); background: var(--danger); color: white; padding: 12px 24px; border-radius: 8px; font-weight: bold; font-size: 14px; z-index: 500; display: none; box-shadow: 0 4px 12px rgba(0,0,0,0.3); max-width: 90vw; text-align: center; }
   </style>
 </head>
 <body>
+
+  <!-- Header -->
   <header>
-    <h1>古着瞬間査定Pro</h1>
+    <h1>古着瞬間査定Pro v2</h1>
     <button class="settings-btn" onclick="openApiModal()">⚙️</button>
   </header>
 
+  <!-- Scanner Area -->
   <div class="scanner-container" id="scanner-container" onclick="handleScannerClick(event)">
     <video id="camera-stream" autoplay playsinline muted></video>
+    
+    <div class="step-guide" id="step-guide">STEP 1: 全体を撮影</div>
+    
     <div class="overlay">
       <div class="scan-frame" id="scan-frame"></div>
     </div>
+    
+    <div class="thumbnail-bar">
+      <div class="thumb-item" id="thumb-full" onclick="resetToStep(1)">
+        <div class="thumb-label">全体</div>
+      </div>
+      <div class="thumb-item" id="thumb-tag" onclick="resetToStep(2)">
+        <div class="thumb-label">タグ</div>
+      </div>
+    </div>
   </div>
 
+  <!-- Bottom Controls -->
   <div class="bottom-controls">
     <div class="categories" id="category-list">
       <button class="category-btn active" data-val="スウェット/パーカー">スウェット/パーカー</button>
@@ -149,7 +225,7 @@
     </div>
     
     <div class="action-bar">
-      <button class="btn-main" onclick="captureAndAnalyze()">⚡️ 枠内を即スキャン査定</button>
+      <button class="btn-main" id="btn-main-action" onclick="handleMainAction()">📸 1. 全体を撮影</button>
       <label class="btn-sub">
         📷
         <input type="file" id="file-input" accept="image/*" onchange="handleFileUpload(event)">
@@ -157,13 +233,26 @@
     </div>
   </div>
 
+  <!-- Result Sheet -->
   <div class="result-sheet" id="result-sheet">
     <div class="sheet-header-actions">
-      <div class="close-handle"></div>
       <button class="btn-next-scan" onclick="closeResult()">✕ 閉じて次の服をスキャン</button>
     </div>
 
-    <div id="res-badge" class="badge">判定中...</div>
+    <div class="header-row">
+      <div id="res-badge" class="badge">判定中...</div>
+    </div>
+    <div class="item-title" id="res-item-name">-</div>
+
+    <!-- Mercari Block -->
+    <div class="mercari-block">
+      <div class="mercari-label">🔍 メルカリ売り切れ相場 直行</div>
+      <div class="mercari-keyword" id="res-mercari-keyword">-</div>
+      <div class="mercari-actions">
+        <a href="#" id="res-mercari-link" target="_blank" class="btn-mercari">メルカリを開く ↗</a>
+        <button class="btn-copy" onclick="copyMercariKeyword()">コピー</button>
+      </div>
+    </div>
     
     <div class="summary-grid">
       <div class="summary-item"><div class="summary-label">ブランド</div><div class="summary-val" id="res-brand">-</div></div>
@@ -174,7 +263,7 @@
 
     <div class="price-box">
       <div class="price-row">
-        <span class="summary-label">最悪ケース想定相場</span>
+        <span class="summary-label">最悪ケース想定売価</span>
         <span class="summary-val" id="res-conservative-price">¥0</span>
       </div>
       <div class="price-row highlight">
@@ -203,13 +292,28 @@
       </div>
     </div>
 
-    <div class="section-title">🚀 上振れ条件ハイライト</div>
-    <ul class="upside-list" id="res-upside"></ul>
+    <!-- Tech Intervention -->
+    <div class="tech-card">
+      <div class="tech-title">🛠️ 技術介入ポテンシャル</div>
+      <div class="tech-item">
+        <div class="tech-label">タイトルSEO</div>
+        <div class="tech-desc" id="res-tech-seo">-</div>
+      </div>
+      <div class="tech-item">
+        <div class="tech-label">見せ方・スタイリング</div>
+        <div class="tech-desc" id="res-tech-style">-</div>
+      </div>
+      <div class="tech-item">
+        <div class="tech-label">15分メンテナンス</div>
+        <div class="tech-desc" id="res-tech-maint">-</div>
+      </div>
+    </div>
 
-    <div class="section-title">💡 相場判断根拠</div>
+    <div class="section-title">💡 総合査定根拠</div>
     <div class="reason-text" id="res-reason">-</div>
   </div>
 
+  <!-- API Key Modal -->
   <div class="modal" id="api-modal">
     <div class="modal-content">
       <div class="modal-title">Gemini APIキー設定</div>
@@ -219,19 +323,33 @@
     </div>
   </div>
 
+  <!-- Loader -->
   <div class="loader" id="loader">
     <div class="spinner"></div>
-    <div style="font-weight: bold; font-size: 14px;">AIタグ解析中...</div>
+    <div style="font-weight: bold; font-size: 14px;">画像解析＆相場算出中...</div>
   </div>
 
+  <!-- Toast -->
   <div class="toast" id="toast">エラーが発生しました</div>
   <script>
+    // --- App State ---
+    let currentStep = 1; // 1: 全体撮影, 2: タグ撮影, 3: 査定実行
+    let fullImageB64 = null;
+    let tagImageB64 = null;
     let currentCategory = 'スウェット/パーカー';
     let apiKey = localStorage.getItem('gemini_api_key') || '';
     let currentValuation = null;
+    
+    // DOM Elements
     const videoElement = document.getElementById('camera-stream');
     const resultSheet = document.getElementById('result-sheet');
+    const btnMain = document.getElementById('btn-main-action');
+    const stepGuide = document.getElementById('step-guide');
+    const scanFrame = document.getElementById('scan-frame');
+    const thumbFull = document.getElementById('thumb-full');
+    const thumbTag = document.getElementById('thumb-tag');
 
+    // Category Selector
     document.querySelectorAll('.category-btn').forEach(btn => {
       btn.addEventListener('click', (e) => {
         document.querySelectorAll('.category-btn').forEach(b => b.classList.remove('active'));
@@ -240,11 +358,14 @@
       });
     });
 
+    // Init
     window.onload = () => {
       if (!apiKey) openApiModal();
       startCamera();
+      updateUI();
     };
 
+    // --- Camera Setup ---
     async function startCamera() {
       try {
         const stream = await navigator.mediaDevices.getUserMedia({
@@ -252,25 +373,111 @@
         });
         videoElement.srcObject = stream;
       } catch (err) {
+        console.warn("Camera failed", err);
         showToast("カメラを起動できませんでした。写真選択をご利用ください。");
       }
     }
 
+    // --- Background Tap to Close ---
     function handleScannerClick(event) {
       if (resultSheet.classList.contains('show')) {
         closeResult();
       }
     }
 
-    async function captureAndAnalyze() {
-      if (!apiKey) return openApiModal();
-      if (!videoElement.srcObject) return showToast("カメラ映像がありません。写真選択をお試しください。");
+    // --- UI Control ---
+    function updateUI() {
+      btnMain.className = 'btn-main'; // reset class
+      if (currentStep === 1) {
+        btnMain.innerHTML = '📸 1. 全体を撮影';
+        stepGuide.innerHTML = 'STEP 1: 全体を撮影';
+        scanFrame.style.display = 'none';
+        
+        if(fullImageB64) {
+          thumbFull.style.display = 'block';
+          thumbFull.style.backgroundImage = `url(data:image/jpeg;base64,${fullImageB64})`;
+        } else {
+          thumbFull.style.display = 'none';
+        }
+        thumbTag.style.display = 'none';
+        
+      } else if (currentStep === 2) {
+        btnMain.innerHTML = '🏷️ 2. タグを枠内で撮影';
+        btnMain.classList.add('step2');
+        stepGuide.innerHTML = 'STEP 2: タグを枠に合わせて撮影';
+        scanFrame.style.display = 'block';
+        
+        thumbFull.style.display = 'block';
+        thumbFull.style.backgroundImage = `url(data:image/jpeg;base64,${fullImageB64})`;
+        
+        if(tagImageB64) {
+          thumbTag.style.display = 'block';
+          thumbTag.style.backgroundImage = `url(data:image/jpeg;base64,${tagImageB64})`;
+        } else {
+          thumbTag.style.display = 'none';
+        }
+      } else if (currentStep === 3) {
+        btnMain.innerHTML = '⚡ 2枚で精密査定開始';
+        btnMain.classList.add('step3');
+        stepGuide.innerHTML = '査定準備完了';
+        scanFrame.style.display = 'none';
+        
+        thumbTag.style.display = 'block';
+        thumbTag.style.backgroundImage = `url(data:image/jpeg;base64,${tagImageB64})`;
+      }
+    }
 
-      const canvas = document.createElement('canvas');
-      const frame = document.getElementById('scan-frame');
+    function resetToStep(stepNum) {
+      currentStep = stepNum;
+      if (stepNum === 1) fullImageB64 = null;
+      if (stepNum === 2) tagImageB64 = null;
+      updateUI();
+    }
+
+    // --- Capture Logic ---
+    function handleMainAction() {
+      if (!apiKey) return openApiModal();
       
+      if (currentStep === 1) {
+        if (!videoElement.srcObject) return showToast("カメラ映像がありません");
+        captureFullImage();
+        currentStep = 2;
+        updateUI();
+      } else if (currentStep === 2) {
+        if (!videoElement.srcObject) return showToast("カメラ映像がありません");
+        captureTagImage();
+        currentStep = 3;
+        updateUI();
+      } else if (currentStep === 3) {
+        if (fullImageB64 && tagImageB64) {
+          executeAppraisal();
+        } else {
+          showToast("画像が不足しています");
+          resetToStep(1);
+        }
+      }
+    }
+
+    function captureFullImage() {
+      const canvas = document.createElement('canvas');
+      // リサイズ (最大長800px程度)
+      const maxDim = 800;
+      let w = videoElement.videoWidth;
+      let h = videoElement.videoHeight;
+      if (w > h) {
+        if (w > maxDim) { h *= maxDim / w; w = maxDim; }
+      } else {
+        if (h > maxDim) { w *= maxDim / h; h = maxDim; }
+      }
+      canvas.width = w; canvas.height = h;
+      canvas.getContext('2d').drawImage(videoElement, 0, 0, w, h);
+      fullImageB64 = canvas.toDataURL('image/jpeg', 0.8).split(',')[1];
+    }
+
+    function captureTagImage() {
+      const canvas = document.createElement('canvas');
       const vRect = videoElement.getBoundingClientRect();
-      const fRect = frame.getBoundingClientRect();
+      const fRect = scanFrame.getBoundingClientRect();
       
       const scaleX = videoElement.videoWidth / vRect.width;
       const scaleY = videoElement.videoHeight / vRect.height;
@@ -282,13 +489,11 @@
       
       canvas.width = cropW;
       canvas.height = cropH;
-      const ctx = canvas.getContext('2d');
-      ctx.drawImage(videoElement, cropX, cropY, cropW, cropH, 0, 0, cropW, cropH);
-      
-      const base64Image = canvas.toDataURL('image/jpeg', 0.8).split(',')[1];
-      await callGeminiApi(base64Image);
+      canvas.getContext('2d').drawImage(videoElement, cropX, cropY, cropW, cropH, 0, 0, cropW, cropH);
+      tagImageB64 = canvas.toDataURL('image/jpeg', 0.8).split(',')[1];
     }
 
+    // --- File Upload Fallback ---
     function handleFileUpload(event) {
       if (!apiKey) return openApiModal();
       const file = event.target.files[0];
@@ -297,21 +502,29 @@
       const reader = new FileReader();
       reader.onload = (e) => {
         const img = new Image();
-        img.onload = async () => {
+        img.onload = () => {
           const canvas = document.createElement('canvas');
-          const size = Math.min(img.width, img.height);
-          const cropW = size * 0.8; 
-          const cropH = size * 0.5;
-          const startX = (img.width - cropW) / 2;
-          const startY = (img.height - cropH) / 2;
+          let w = img.width, h = img.height;
+          const maxDim = 800;
+          if (w > maxDim || h > maxDim) {
+             if(w > h){ h *= maxDim/w; w = maxDim; } else { w *= maxDim/h; h = maxDim; }
+          }
           
-          canvas.width = cropW;
-          canvas.height = cropH;
-          const ctx = canvas.getContext('2d');
-          ctx.drawImage(img, startX, startY, cropW, cropH, 0, 0, cropW, cropH);
-          
-          const base64Image = canvas.toDataURL('image/jpeg', 0.8).split(',')[1];
-          await callGeminiApi(base64Image);
+          if (currentStep === 1) {
+            canvas.width = w; canvas.height = h;
+            canvas.getContext('2d').drawImage(img, 0, 0, w, h);
+            fullImageB64 = canvas.toDataURL('image/jpeg', 0.8).split(',')[1];
+            currentStep = 2;
+          } else if (currentStep === 2 || currentStep === 3) {
+            // タグ用クロップ (中央50%)
+            const cropW = img.width * 0.6; const cropH = img.height * 0.4;
+            const startX = (img.width - cropW) / 2; const startY = (img.height - cropH) / 2;
+            canvas.width = cropW; canvas.height = cropH;
+            canvas.getContext('2d').drawImage(img, startX, startY, cropW, cropH, 0, 0, cropW, cropH);
+            tagImageB64 = canvas.toDataURL('image/jpeg', 0.8).split(',')[1];
+            currentStep = 3;
+          }
+          updateUI();
         };
         img.src = e.target.result;
       };
@@ -319,24 +532,34 @@
       event.target.value = '';
     }
 
-    async function callGeminiApi(base64Image) {
+    // --- API Integration ---
+    async function executeAppraisal() {
       showLoader(true);
       closeResult();
 
       const endpoint = `https://generativelanguage.googleapis.com/v1beta/models/gemini-3.8-flash:generateContent?key=${apiKey}`;
       
       const systemInstruction = `
-あなたは古着専業の極めてシビアなプロバイヤーです。
-提供されたタグ画像を分析し、メルカリでの最悪ケース相場と仕入れ判断を冷徹に下してください。
+あなたは古着専業の極めてシビアなトップバイヤーです。
+提供された【1枚目: 服の全体画像】と【2枚目: タグ画像】の両方を総合的に分析し、メルカリ相場を査定してください。
 
 【重要査定ルール】
-1. タグ情報（ブランド名、年代、生産国、サイズ表記）を読み取ること。不鮮明な箇所はでっち上げず「不明」とせよ。
-2. 最悪ケース基準（Defensive Pricing）：
-   タグから特定できない要素（プリント、カラー、状態）は「最も相場が低いモデル（無地・不人気色・並品）」を基準に想定売価（conservative_price）を冷徹に算出せよ。
-3. 推奨上限仕入れ値（max_buy_price）の算出：
-   conservative_price * 0.9 - 送料（アイテムに応じ220〜850円） - 最低確保利益1,500円
-4. 上振れ条件（upside_conditions）：
-   どのようなプリント・型番・人気ディテール（例：カレッジ3段プリント、リバースウィーブ、企業ロゴ等）があれば相場がいくらまで跳ねるかを具体的に注記せよ。
+1. デザインとタグの統合判定:
+   - 1枚目の全体画像から「服種、カラー、シルエット、柄、プリント」を評価せよ。
+   - 2枚目のタグ画像から「ブランド、年代、生産国、サイズ規格」を読み取れ。
+   - タグだけでなく全体のデザイン価値を必ず相場に反映させること。
+2. 最悪ケース基準（Defensive Pricing）:
+   - 状態は「並品」として、無理のない手堅い下限メルカリ売価（conservative_price）を算出せよ。
+3. 推奨上限仕入れ値（max_buy_price）:
+   - conservative_price * 0.9 - 送料 - 最低確保利益1,500円
+4. 判定（verdict）の3段階評価:
+   - '即買い': 相場が高く手堅い品
+   - '要確認': 上振れ余地があるがメルカリで直接相場確認を推奨するもの
+   - '見送り': 利益が出ないもの
+5. メルカリ検索キーワード（mercari_search_query）の生成:
+   - 一発で相場特定できる、最も精度の高いキーワード（3〜4単語）。
+6. 技術介入（technical_intervention）:
+   - 15分以内の工夫で相場を引き上げるテクニック（seo_title, styling, maintenance）を出力せよ。
 `;
 
       const payload = {
@@ -344,7 +567,10 @@
         contents: [{
           parts: [
             { text: `対象カテゴリ: ${currentCategory}` },
-            { inline_data: { mime_type: "image/jpeg", data: base64Image } }
+            { text: "【1枚目: 服の全体画像】" },
+            { inline_data: { mime_type: "image/jpeg", data: fullImageB64 } },
+            { text: "【2枚目: タグ画像】" },
+            { inline_data: { mime_type: "image/jpeg", data: tagImageB64 } }
           ]
         }],
         generationConfig: {
@@ -354,16 +580,22 @@
             properties: {
               brand: { type: "STRING" },
               era: { type: "STRING" },
+              item_name: { type: "STRING" },
               size_raw: { type: "STRING" },
               size_japan: { type: "STRING" },
               conservative_price: { type: "NUMBER" },
               max_buy_price: { type: "NUMBER" },
               expected_shipping: { type: "NUMBER" },
-              verdict: { type: "STRING", enum: ["仕入れ推奨", "条件付き買い", "見送り"] },
+              verdict: { type: "STRING", enum: ["即買い", "要確認", "見送り"] },
+              mercari_search_query: { type: "STRING" },
+              technical_intervention: {
+                type: "OBJECT",
+                properties: { seo_title: { type: "STRING" }, styling: { type: "STRING" }, maintenance: { type: "STRING" } }
+              },
               upside_conditions: { type: "ARRAY", items: { type: "STRING" } },
               reason: { type: "STRING" }
             },
-            required: ["brand", "era", "size_raw", "size_japan", "conservative_price", "max_buy_price", "expected_shipping", "verdict", "upside_conditions", "reason"]
+            required: ["brand", "era", "item_name", "size_raw", "size_japan", "conservative_price", "max_buy_price", "expected_shipping", "verdict", "mercari_search_query", "technical_intervention", "reason"]
           }
         }
       };
@@ -375,55 +607,61 @@
           body: JSON.stringify(payload)
         });
 
-        if (!response.ok) {
-          const errorText = await response.text();
-          throw new Error(`API Error: ${response.status} ${errorText}`);
-        }
-
+        if (!response.ok) throw new Error(`API Error: ${response.status}`);
+        
         const data = await response.json();
-        const jsonString = data.candidates[0].content.parts[0].text;
-        currentValuation = JSON.parse(jsonString);
+        currentValuation = JSON.parse(data.candidates[0].content.parts[0].text);
         
         renderResult(currentValuation);
         showLoader(false);
       } catch (err) {
+        console.error(err);
         showLoader(false);
-        showToast("査定エラー: APIキーの確認、または画像の再スキャンをお試しください");
+        showToast("査定エラー: 処理を中断しました。通信環境やAPIキーを確認してください。");
       }
     }
 
+    // --- Rendering UI ---
     function renderResult(data) {
+      // 判定バッジ
+      const badge = document.getElementById('res-badge');
+      badge.innerText = data.verdict;
+      badge.className = 'badge';
+      if (data.verdict === '即買い') badge.classList.add('green');
+      else if (data.verdict === '要確認') badge.classList.add('yellow');
+      else badge.classList.add('red');
+
+      document.getElementById('res-item-name').innerText = data.item_name || '-';
+      
+      // メルカリ検索
+      const query = data.mercari_search_query || '';
+      document.getElementById('res-mercari-keyword').innerText = query;
+      const encodedQuery = encodeURIComponent(query);
+      document.getElementById('res-mercari-link').href = `https://jp.mercari.com/search?keyword=${encodedQuery}&status=sold_out|trading`;
+
+      // サマリー
       document.getElementById('res-brand').innerText = data.brand || '不明';
       document.getElementById('res-era').innerText = data.era || '不明';
       document.getElementById('res-raw-size').innerText = data.size_raw || '不明';
       document.getElementById('res-jp-size').innerText = data.size_japan || '不明';
       
+      // 価格
       document.getElementById('res-conservative-price').innerText = `¥${(data.conservative_price || 0).toLocaleString()}`;
       document.getElementById('res-max-buy').innerText = `¥${(data.max_buy_price || 0).toLocaleString()}`;
       document.getElementById('res-shipping').innerText = `¥${(data.expected_shipping || 0).toLocaleString()}`;
       
-      const badge = document.getElementById('res-badge');
-      badge.innerText = data.verdict;
-      badge.className = 'badge';
-      if (data.verdict === '仕入れ推奨') badge.classList.add('green');
-      else if (data.verdict === '条件付き買い') badge.classList.add('yellow');
-      else badge.classList.add('red');
-
-      const upsideList = document.getElementById('res-upside');
-      upsideList.innerHTML = '';
-      if (Array.isArray(data.upside_conditions)) {
-        data.upside_conditions.forEach(item => {
-          const li = document.createElement('li');
-          li.innerText = item;
-          upsideList.appendChild(li);
-        });
+      // 技術介入
+      if(data.technical_intervention) {
+        document.getElementById('res-tech-seo').innerText = data.technical_intervention.seo_title || '-';
+        document.getElementById('res-tech-style').innerText = data.technical_intervention.styling || '-';
+        document.getElementById('res-tech-maint').innerText = data.technical_intervention.maintenance || '-';
       }
 
       document.getElementById('res-reason').innerText = data.reason || '';
 
+      // Reset recalculation inputs
       document.getElementById('inStorePrice').value = '';
-      document.getElementById('calc-net-profit').innerText = '¥0';
-      document.getElementById('calc-margin').innerText = '0%';
+      calculateProfit();
 
       resultSheet.classList.add('show');
     }
@@ -441,6 +679,7 @@
       const cp = currentValuation.conservative_price || 0;
       const ship = currentValuation.expected_shipping || 0;
       
+      // Net Profit = conservative_price - (conservative_price * 0.10) - expected_shipping - in_store_price
       const netProfit = cp - (cp * 0.10) - ship - inStorePrice;
       const profitMargin = cp > 0 ? (netProfit / cp) * 100 : 0;
 
@@ -455,6 +694,19 @@
 
     function closeResult() {
       resultSheet.classList.remove('show');
+      // Reset to Step 1 for next scan
+      resetToStep(1);
+    }
+
+    // --- Utilities ---
+    function copyMercariKeyword() {
+      const txt = document.getElementById('res-mercari-keyword').innerText;
+      if(!txt || txt === '-') return;
+      navigator.clipboard.writeText(txt).then(() => {
+        showToast("キーワードをコピーしました", true);
+      }).catch(err => {
+        showToast("コピーに失敗しました");
+      });
     }
 
     function openApiModal() {
