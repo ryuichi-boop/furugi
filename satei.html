@@ -2,7 +2,7 @@
 <html lang="ja">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
   <title>古着瞬間査定Pro</title>
   <style>
     :root {
@@ -11,21 +11,22 @@
       --success: #22c55e; --warning: #eab308; --danger: #ef4444;
     }
     * { box-sizing: border-box; margin: 0; padding: 0; }
-    body {
-      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
-      background-color: var(--bg-color); color: var(--text-main);
-      overflow: hidden; touch-action: none;
+    html, body {
+      width: 100%; height: 100%; background-color: var(--bg-color);
+      color: var(--text-main); font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+      overflow-x: hidden;
     }
     header {
       position: fixed; top: 0; left: 0; right: 0; height: 60px; display: flex;
       justify-content: space-between; align-items: center; padding: 0 16px;
       background: linear-gradient(to bottom, rgba(15,23,42,0.9), transparent); z-index: 100;
     }
-    header h1 { font-size: 18px; font-weight: bold; text-shadow: 0 2px 4px rgba(0,0,0,0.8); }
+    header h1 { font-size: 18px; font-weight: bold; letter-spacing: 1px; text-shadow: 0 2px 4px rgba(0,0,0,0.8); }
     .settings-btn { background: none; border: none; color: white; font-size: 24px; cursor: pointer; padding: 8px; }
     .scanner-container {
       position: fixed; top: 0; left: 0; width: 100vw; height: 100vh;
-      display: flex; justify-content: center; align-items: center; background-color: #000; z-index: 10;
+      display: flex; justify-content: center; align-items: center; background-color: #000;
+      z-index: 10; cursor: pointer;
     }
     #camera-stream { position: absolute; width: 100%; height: 100%; object-fit: cover; }
     .overlay { position: absolute; width: 100%; height: 100%; pointer-events: none; display: flex; justify-content: center; align-items: center; }
@@ -38,22 +39,25 @@
       text-align: center; color: rgba(255,255,255,0.8); font-size: 12px; font-weight: bold;
     }
     .bottom-controls {
-      position: fixed; bottom: 0; left: 0; right: 0; padding: 16px; padding-bottom: 32px;
-      background: linear-gradient(to top, rgba(15,23,42,1) 40%, transparent); z-index: 100; display: flex; flex-direction: column; gap: 16px;
+      position: fixed; bottom: 0; left: 0; right: 0; padding: 16px;
+      padding-bottom: calc(16px + env(safe-area-inset-bottom, 16px));
+      background: linear-gradient(to top, rgba(15,23,42,1) 40%, transparent);
+      z-index: 100; display: flex; flex-direction: column; gap: 14px;
     }
-    .categories { display: flex; gap: 10px; overflow-x: auto; padding-bottom: 8px; scrollbar-width: none; }
+    .categories { display: flex; gap: 10px; overflow-x: auto; padding-bottom: 4px; scrollbar-width: none; -webkit-overflow-scrolling: touch; }
     .categories::-webkit-scrollbar { display: none; }
     .category-btn {
       flex: 0 0 auto; padding: 10px 18px; border-radius: 99px;
-      background-color: rgba(30,41,59,0.8); border: 1px solid var(--text-muted);
-      color: var(--text-muted); font-size: 14px; font-weight: bold; transition: all 0.2s;
+      background-color: rgba(30,41,59,0.85); border: 1px solid var(--text-muted);
+      color: var(--text-muted); font-size: 14px; font-weight: bold; cursor: pointer;
     }
     .category-btn.active { background-color: var(--text-main); color: var(--bg-color); border-color: var(--text-main); }
     .action-bar { display: flex; gap: 12px; }
     .btn-main {
       flex: 1; padding: 16px; border-radius: 12px; background-color: var(--accent-color); color: white;
-      font-size: 16px; font-weight: bold; border: none; display: flex; justify-content: center; align-items: center;
+      font-size: 16px; font-weight: bold; border: none; display: flex; justify-content: center; align-items: center; cursor: pointer;
     }
+    .btn-main:active { transform: scale(0.98); }
     .btn-sub {
       width: 54px; height: 54px; border-radius: 12px; background-color: var(--panel-bg); color: white;
       border: 1px solid var(--text-muted); display: flex; justify-content: center; align-items: center; font-size: 20px; cursor: pointer;
@@ -61,45 +65,65 @@
     #file-input { display: none; }
     .result-sheet {
       position: fixed; bottom: 0; left: 0; right: 0; background-color: var(--panel-bg);
-      border-radius: 24px 24px 0 0; padding: 24px 20px 40px; z-index: 200;
-      transform: translateY(100%); transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-      max-height: 85vh; overflow-y: auto; box-shadow: 0 -4px 20px rgba(0,0,0,0.5);
+      border-top-left-radius: 24px; border-top-right-radius: 24px; padding: 16px 20px 40px;
+      z-index: 200; transform: translateY(105%); transition: transform 0.28s cubic-bezier(0.16, 1, 0.3, 1);
+      max-height: 82vh; overflow-y: auto; -webkit-overflow-scrolling: touch; box-shadow: 0 -8px 30px rgba(0,0,0,0.7);
     }
     .result-sheet.show { transform: translateY(0); }
-    .close-handle { width: 40px; height: 5px; background-color: var(--text-muted); border-radius: 5px; margin: 0 auto 20px; }
-    .badge { display: inline-block; padding: 6px 12px; border-radius: 8px; font-weight: bold; font-size: 14px; margin-bottom: 16px; }
+    .sheet-header-actions { display: flex; flex-direction: column; align-items: center; gap: 12px; margin-bottom: 16px; }
+    .close-handle { width: 48px; height: 5px; background-color: var(--text-muted); border-radius: 99px; opacity: 0.6; }
+    .btn-next-scan {
+      width: 100%; padding: 13px; border-radius: 12px; background-color: #334155; color: #f8fafc;
+      border: 1px solid #475569; font-size: 15px; font-weight: bold; display: flex; justify-content: center; align-items: center; gap: 6px; cursor: pointer;
+    }
+    .btn-next-scan:active { background-color: #475569; transform: scale(0.99); }
+    .badge { display: inline-block; padding: 6px 14px; border-radius: 8px; font-weight: bold; font-size: 15px; margin-bottom: 16px; }
     .badge.green { background-color: rgba(34,197,94,0.2); color: var(--success); border: 1px solid var(--success); }
     .badge.yellow { background-color: rgba(234,179,8,0.2); color: var(--warning); border: 1px solid var(--warning); }
     .badge.red { background-color: rgba(239,68,68,0.2); color: var(--danger); border: 1px solid var(--danger); }
-    .summary-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 20px; }
-    .summary-item { background: rgba(0,0,0,0.2); padding: 12px; border-radius: 8px; }
+    .summary-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 16px; }
+    .summary-item { background: rgba(0,0,0,0.25); padding: 12px; border-radius: 8px; }
     .summary-label { font-size: 11px; color: var(--text-muted); margin-bottom: 4px; }
     .summary-val { font-size: 14px; font-weight: bold; }
-    .price-box { border: 1px solid var(--text-muted); border-radius: 12px; padding: 16px; margin-bottom: 20px; }
-    .price-row { display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; }
+    .price-box { border: 1px solid #475569; border-radius: 12px; padding: 16px; margin-bottom: 16px; background: rgba(15,23,42,0.4); }
+    .price-row { display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px; }
     .price-row:last-child { margin-bottom: 0; }
-    .price-row.highlight { border-top: 1px dashed var(--text-muted); padding-top: 12px; margin-top: 12px; }
-    .input-group { margin-top: 16px; }
-    .input-group label { display: block; font-size: 12px; color: var(--text-muted); margin-bottom: 8px; }
+    .price-row.highlight { border-top: 1px dashed #475569; padding-top: 10px; margin-top: 10px; }
+    .input-group { margin-top: 14px; }
+    .input-group label { display: block; font-size: 12px; color: var(--text-muted); margin-bottom: 6px; }
     .store-price-input {
       width: 100%; background: var(--bg-color); color: white; border: 1px solid var(--accent-color);
       border-radius: 8px; padding: 12px; font-size: 16px; font-weight: bold; outline: none;
     }
-    .profit-results { margin-top: 12px; display: flex; justify-content: space-between; background: rgba(59,130,246,0.1); padding: 12px; border-radius: 8px; }
+    .profit-results {
+      margin-top: 12px; display: flex; justify-content: space-between;
+      background: rgba(59,130,246,0.12); padding: 12px 16px; border-radius: 8px; border: 1px solid rgba(59,130,246,0.3);
+    }
     .profit-val { font-size: 18px; font-weight: bold; color: var(--accent-color); }
-    .section-title { font-size: 14px; font-weight: bold; margin: 20px 0 10px; border-left: 3px solid var(--accent-color); padding-left: 8px; }
-    ul.upside-list { padding-left: 20px; margin-bottom: 20px; }
-    ul.upside-list li { font-size: 13px; margin-bottom: 6px; color: #cbd5e1; }
+    .section-title { font-size: 13px; font-weight: bold; margin: 18px 0 8px; border-left: 3px solid var(--accent-color); padding-left: 8px; color: #e2e8f0; }
+    ul.upside-list { padding-left: 20px; margin-bottom: 16px; }
+    ul.upside-list li { font-size: 13px; margin-bottom: 6px; color: #cbd5e1; line-height: 1.4; }
     .reason-text { font-size: 13px; line-height: 1.5; color: #cbd5e1; }
-    .modal { position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; background: rgba(0,0,0,0.8); z-index: 300; display: none; justify-content: center; align-items: center; padding: 20px; }
+    .modal {
+      position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; background: rgba(0,0,0,0.8);
+      z-index: 300; display: none; justify-content: center; align-items: center; padding: 20px;
+    }
     .modal-content { background: var(--panel-bg); width: 100%; max-width: 400px; padding: 24px; border-radius: 16px; }
     .modal-title { font-size: 16px; font-weight: bold; margin-bottom: 16px; }
-    .api-input { width: 100%; padding: 12px; border-radius: 8px; border: 1px solid var(--text-muted); background: var(--bg-color); color: white; margin-bottom: 16px; }
-    .btn-save { width: 100%; padding: 12px; border-radius: 8px; background: var(--accent-color); color: white; border: none; font-weight: bold; }
-    .loader { display: none; position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%); background: rgba(30,41,59,0.9); padding: 24px; border-radius: 16px; z-index: 400; flex-direction: column; align-items: center; }
-    .spinner { width: 40px; height: 40px; border: 4px solid rgba(255,255,255,0.1); border-top-color: var(--accent-color); border-radius: 50%; animation: spin 1s linear infinite; margin-bottom: 16px; }
+    .api-input { width: 100%; padding: 12px; border-radius: 8px; border: 1px solid var(--text-muted); background: var(--bg-color); color: white; margin-bottom: 16px; font-size: 14px; }
+    .btn-save { width: 100%; padding: 12px; border-radius: 8px; background: var(--accent-color); color: white; border: none; font-weight: bold; cursor: pointer; }
+    .loader {
+      display: none; position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%);
+      background: rgba(30,41,59,0.95); padding: 24px 32px; border-radius: 16px; z-index: 400;
+      flex-direction: column; align-items: center; box-shadow: 0 10px 25px rgba(0,0,0,0.5);
+    }
+    .spinner { width: 40px; height: 40px; border: 4px solid rgba(255,255,255,0.1); border-top-color: var(--accent-color); border-radius: 50%; animation: spin 1s linear infinite; margin-bottom: 14px; }
     @keyframes spin { to { transform: rotate(360deg); } }
-    .toast { position: fixed; top: 20px; left: 50%; transform: translateX(-50%); background: var(--danger); color: white; padding: 12px 24px; border-radius: 8px; font-weight: bold; font-size: 14px; z-index: 500; display: none; }
+    .toast {
+      position: fixed; top: 20px; left: 50%; transform: translateX(-50%); background: var(--danger);
+      color: white; padding: 12px 24px; border-radius: 8px; font-weight: bold; font-size: 14px;
+      z-index: 500; display: none; box-shadow: 0 4px 12px rgba(0,0,0,0.3); max-width: 90vw; text-align: center;
+    }
   </style>
 </head>
 <body>
@@ -107,10 +131,14 @@
     <h1>古着瞬間査定Pro</h1>
     <button class="settings-btn" onclick="openApiModal()">⚙️</button>
   </header>
-  <div class="scanner-container">
-    <video id="camera-stream" autoplay playsinline></video>
-    <div class="overlay"><div class="scan-frame" id="scan-frame"></div></div>
+
+  <div class="scanner-container" id="scanner-container" onclick="handleScannerClick(event)">
+    <video id="camera-stream" autoplay playsinline muted></video>
+    <div class="overlay">
+      <div class="scan-frame" id="scan-frame"></div>
+    </div>
   </div>
+
   <div class="bottom-controls">
     <div class="categories" id="category-list">
       <button class="category-btn active" data-val="スウェット/パーカー">スウェット/パーカー</button>
@@ -119,38 +147,69 @@
       <button class="category-btn" data-val="シャツ">シャツ</button>
       <button class="category-btn" data-val="ボトムス">ボトムス</button>
     </div>
+    
     <div class="action-bar">
       <button class="btn-main" onclick="captureAndAnalyze()">⚡️ 枠内を即スキャン査定</button>
-      <label class="btn-sub">📷<input type="file" id="file-input" accept="image/*" onchange="handleFileUpload(event)"></label>
+      <label class="btn-sub">
+        📷
+        <input type="file" id="file-input" accept="image/*" onchange="handleFileUpload(event)">
+      </label>
     </div>
   </div>
+
   <div class="result-sheet" id="result-sheet">
-    <div class="close-handle" onclick="closeResult()"></div>
+    <div class="sheet-header-actions">
+      <div class="close-handle"></div>
+      <button class="btn-next-scan" onclick="closeResult()">✕ 閉じて次の服をスキャン</button>
+    </div>
+
     <div id="res-badge" class="badge">判定中...</div>
+    
     <div class="summary-grid">
       <div class="summary-item"><div class="summary-label">ブランド</div><div class="summary-val" id="res-brand">-</div></div>
       <div class="summary-item"><div class="summary-label">推定年代</div><div class="summary-val" id="res-era">-</div></div>
       <div class="summary-item"><div class="summary-label">表記サイズ</div><div class="summary-val" id="res-raw-size">-</div></div>
       <div class="summary-item"><div class="summary-label">換算サイズ</div><div class="summary-val" id="res-jp-size">-</div></div>
     </div>
+
     <div class="price-box">
-      <div class="price-row"><span class="summary-label">最悪ケース想定相場</span><span class="summary-val" id="res-conservative-price">¥0</span></div>
-      <div class="price-row highlight"><span class="summary-label" style="color: var(--success); font-weight: bold;">推奨仕入れ上限</span><span class="summary-val" id="res-max-buy" style="color: var(--success); font-size: 18px;">¥0</span></div>
-      <div class="price-row"><span class="summary-label">想定送料目安</span><span class="summary-val" id="res-shipping">¥0</span></div>
+      <div class="price-row">
+        <span class="summary-label">最悪ケース想定相場</span>
+        <span class="summary-val" id="res-conservative-price">¥0</span>
+      </div>
+      <div class="price-row highlight">
+        <span class="summary-label" style="color: var(--success); font-weight: bold;">推奨仕入れ上限</span>
+        <span class="summary-val" id="res-max-buy" style="color: var(--success); font-size: 18px;">¥0</span>
+      </div>
+      <div class="price-row">
+        <span class="summary-label">想定送料目安</span>
+        <span class="summary-val" id="res-shipping">¥0</span>
+      </div>
     </div>
+
     <div class="input-group">
       <label>後入れ店頭価格 (仕入れ値を入力して利益計算)</label>
-      <input type="number" id="inStorePrice" class="store-price-input" placeholder="例: 1500" oninput="calculateProfit()">
+      <input type="number" inputmode="numeric" id="inStorePrice" class="store-price-input" placeholder="例: 1500" oninput="calculateProfit()">
     </div>
+
     <div class="profit-results">
-      <div><div class="summary-label">見込純利益</div><div class="profit-val" id="calc-net-profit">¥0</div></div>
-      <div style="text-align: right;"><div class="summary-label">利益率</div><div class="profit-val" id="calc-margin">0%</div></div>
+      <div>
+        <div class="summary-label">見込純利益</div>
+        <div class="profit-val" id="calc-net-profit">¥0</div>
+      </div>
+      <div style="text-align: right;">
+        <div class="summary-label">利益率</div>
+        <div class="profit-val" id="calc-margin">0%</div>
+      </div>
     </div>
+
     <div class="section-title">🚀 上振れ条件ハイライト</div>
     <ul class="upside-list" id="res-upside"></ul>
+
     <div class="section-title">💡 相場判断根拠</div>
     <div class="reason-text" id="res-reason">-</div>
   </div>
+
   <div class="modal" id="api-modal">
     <div class="modal-content">
       <div class="modal-title">Gemini APIキー設定</div>
@@ -159,13 +218,19 @@
       <button class="btn-save" onclick="saveApiKey()">保存して閉じる</button>
     </div>
   </div>
-  <div class="loader" id="loader"><div class="spinner"></div><div style="font-weight: bold; font-size: 14px;">AIタグ解析中...</div></div>
+
+  <div class="loader" id="loader">
+    <div class="spinner"></div>
+    <div style="font-weight: bold; font-size: 14px;">AIタグ解析中...</div>
+  </div>
+
   <div class="toast" id="toast">エラーが発生しました</div>
   <script>
     let currentCategory = 'スウェット/パーカー';
     let apiKey = localStorage.getItem('gemini_api_key') || '';
     let currentValuation = null;
     const videoElement = document.getElementById('camera-stream');
+    const resultSheet = document.getElementById('result-sheet');
 
     document.querySelectorAll('.category-btn').forEach(btn => {
       btn.addEventListener('click', (e) => {
@@ -175,34 +240,53 @@
       });
     });
 
-    window.onload = () => { if (!apiKey) openApiModal(); startCamera(); };
+    window.onload = () => {
+      if (!apiKey) openApiModal();
+      startCamera();
+    };
 
     async function startCamera() {
       try {
-        const stream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: "environment" } });
+        const stream = await navigator.mediaDevices.getUserMedia({
+          video: { facingMode: "environment" }
+        });
         videoElement.srcObject = stream;
       } catch (err) {
         showToast("カメラを起動できませんでした。写真選択をご利用ください。");
       }
     }
 
+    function handleScannerClick(event) {
+      if (resultSheet.classList.contains('show')) {
+        closeResult();
+      }
+    }
+
     async function captureAndAnalyze() {
       if (!apiKey) return openApiModal();
-      if (!videoElement.srcObject) return showToast("カメラ映像がありません");
+      if (!videoElement.srcObject) return showToast("カメラ映像がありません。写真選択をお試しください。");
 
       const canvas = document.createElement('canvas');
       const frame = document.getElementById('scan-frame');
+      
       const vRect = videoElement.getBoundingClientRect();
       const fRect = frame.getBoundingClientRect();
       
       const scaleX = videoElement.videoWidth / vRect.width;
       const scaleY = videoElement.videoHeight / vRect.height;
-      const cropW = fRect.width * scaleX; const cropH = fRect.height * scaleY;
-      const cropX = (fRect.left - vRect.left) * scaleX; const cropY = (fRect.top - vRect.top) * scaleY;
       
-      canvas.width = cropW; canvas.height = cropH;
-      canvas.getContext('2d').drawImage(videoElement, cropX, cropY, cropW, cropH, 0, 0, cropW, cropH);
-      await callGeminiApi(canvas.toDataURL('image/jpeg', 0.8).split(',')[1]);
+      const cropW = fRect.width * scaleX;
+      const cropH = fRect.height * scaleY;
+      const cropX = (fRect.left - vRect.left) * scaleX;
+      const cropY = (fRect.top - vRect.top) * scaleY;
+      
+      canvas.width = cropW;
+      canvas.height = cropH;
+      const ctx = canvas.getContext('2d');
+      ctx.drawImage(videoElement, cropX, cropY, cropW, cropH, 0, 0, cropW, cropH);
+      
+      const base64Image = canvas.toDataURL('image/jpeg', 0.8).split(',')[1];
+      await callGeminiApi(base64Image);
     }
 
     function handleFileUpload(event) {
@@ -216,98 +300,188 @@
         img.onload = async () => {
           const canvas = document.createElement('canvas');
           const size = Math.min(img.width, img.height);
-          const cropW = size * 0.8; const cropH = size * 0.5;
-          const startX = (img.width - cropW) / 2; const startY = (img.height - cropH) / 2;
+          const cropW = size * 0.8; 
+          const cropH = size * 0.5;
+          const startX = (img.width - cropW) / 2;
+          const startY = (img.height - cropH) / 2;
           
-          canvas.width = cropW; canvas.height = cropH;
-          canvas.getContext('2d').drawImage(img, startX, startY, cropW, cropH, 0, 0, cropW, cropH);
-          await callGeminiApi(canvas.toDataURL('image/jpeg', 0.8).split(',')[1]);
+          canvas.width = cropW;
+          canvas.height = cropH;
+          const ctx = canvas.getContext('2d');
+          ctx.drawImage(img, startX, startY, cropW, cropH, 0, 0, cropW, cropH);
+          
+          const base64Image = canvas.toDataURL('image/jpeg', 0.8).split(',')[1];
+          await callGeminiApi(base64Image);
         };
         img.src = e.target.result;
       };
       reader.readAsDataURL(file);
+      event.target.value = '';
     }
 
     async function callGeminiApi(base64Image) {
-      showLoader(true); closeResult();
+      showLoader(true);
+      closeResult();
+
       const endpoint = `https://generativelanguage.googleapis.com/v1beta/models/gemini-3.8-flash:generateContent?key=${apiKey}`;
+      
       const systemInstruction = `
 あなたは古着専業の極めてシビアなプロバイヤーです。
 提供されたタグ画像を分析し、メルカリでの最悪ケース相場と仕入れ判断を冷徹に下してください。
 
 【重要査定ルール】
-1. タグ情報（ブランド名、年代、生産国、サイズ）を読み取ること。不鮮明な箇所はでっち上げず「不明」とせよ。
-2. 最悪ケース基準：タグから特定できない要素は「最も相場が低いモデル」を基準に想定売価を冷徹に算出せよ。
-3. 推奨上限仕入れ値：conservative_price * 0.9 - 送料（220〜850円） - 最低確保利益1,500円
-4. 上振れ条件：どのようなプリント・人気ディテールがあれば相場が跳ねるかを具体的に注記せよ。`;
+1. タグ情報（ブランド名、年代、生産国、サイズ表記）を読み取ること。不鮮明な箇所はでっち上げず「不明」とせよ。
+2. 最悪ケース基準（Defensive Pricing）：
+   タグから特定できない要素（プリント、カラー、状態）は「最も相場が低いモデル（無地・不人気色・並品）」を基準に想定売価（conservative_price）を冷徹に算出せよ。
+3. 推奨上限仕入れ値（max_buy_price）の算出：
+   conservative_price * 0.9 - 送料（アイテムに応じ220〜850円） - 最低確保利益1,500円
+4. 上振れ条件（upside_conditions）：
+   どのようなプリント・型番・人気ディテール（例：カレッジ3段プリント、リバースウィーブ、企業ロゴ等）があれば相場がいくらまで跳ねるかを具体的に注記せよ。
+`;
 
       const payload = {
         system_instruction: { parts: [{ text: systemInstruction }] },
-        contents: [{ parts: [{ text: `対象カテゴリ: ${currentCategory}` }, { inline_data: { mime_type: "image/jpeg", data: base64Image } }] }],
+        contents: [{
+          parts: [
+            { text: `対象カテゴリ: ${currentCategory}` },
+            { inline_data: { mime_type: "image/jpeg", data: base64Image } }
+          ]
+        }],
         generationConfig: {
           response_mime_type: "application/json",
           response_schema: {
             type: "OBJECT",
             properties: {
-              brand: { type: "STRING" }, era: { type: "STRING" }, size_raw: { type: "STRING" },
-              size_japan: { type: "STRING" }, conservative_price: { type: "NUMBER" }, max_buy_price: { type: "NUMBER" },
-              expected_shipping: { type: "NUMBER" }, verdict: { type: "STRING", enum: ["仕入れ推奨", "条件付き買い", "見送り"] },
-              upside_conditions: { type: "ARRAY", items: { type: "STRING" } }, reason: { type: "STRING" }
-            }, required: ["brand", "era", "size_raw", "size_japan", "conservative_price", "max_buy_price", "expected_shipping", "verdict", "upside_conditions", "reason"]
+              brand: { type: "STRING" },
+              era: { type: "STRING" },
+              size_raw: { type: "STRING" },
+              size_japan: { type: "STRING" },
+              conservative_price: { type: "NUMBER" },
+              max_buy_price: { type: "NUMBER" },
+              expected_shipping: { type: "NUMBER" },
+              verdict: { type: "STRING", enum: ["仕入れ推奨", "条件付き買い", "見送り"] },
+              upside_conditions: { type: "ARRAY", items: { type: "STRING" } },
+              reason: { type: "STRING" }
+            },
+            required: ["brand", "era", "size_raw", "size_japan", "conservative_price", "max_buy_price", "expected_shipping", "verdict", "upside_conditions", "reason"]
           }
         }
       };
 
       try {
-        const response = await fetch(endpoint, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(payload) });
-        if (!response.ok) throw new Error(`API Error: ${response.status}`);
-        currentValuation = JSON.parse((await response.json()).candidates[0].content.parts[0].text);
-        renderResult(currentValuation); showLoader(false);
+        const response = await fetch(endpoint, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(payload)
+        });
+
+        if (!response.ok) {
+          const errorText = await response.text();
+          throw new Error(`API Error: ${response.status} ${errorText}`);
+        }
+
+        const data = await response.json();
+        const jsonString = data.candidates[0].content.parts[0].text;
+        currentValuation = JSON.parse(jsonString);
+        
+        renderResult(currentValuation);
+        showLoader(false);
       } catch (err) {
-        showLoader(false); showToast("査定エラー: APIキーの確認、または画像の再スキャンをお試しください");
+        showLoader(false);
+        showToast("査定エラー: APIキーの確認、または画像の再スキャンをお試しください");
       }
     }
 
     function renderResult(data) {
-      document.getElementById('res-brand').innerText = data.brand; document.getElementById('res-era').innerText = data.era;
-      document.getElementById('res-raw-size').innerText = data.size_raw; document.getElementById('res-jp-size').innerText = data.size_japan;
-      document.getElementById('res-conservative-price').innerText = `¥${data.conservative_price.toLocaleString()}`;
-      document.getElementById('res-max-buy').innerText = `¥${data.max_buy_price.toLocaleString()}`;
-      document.getElementById('res-shipping').innerText = `¥${data.expected_shipping.toLocaleString()}`;
+      document.getElementById('res-brand').innerText = data.brand || '不明';
+      document.getElementById('res-era').innerText = data.era || '不明';
+      document.getElementById('res-raw-size').innerText = data.size_raw || '不明';
+      document.getElementById('res-jp-size').innerText = data.size_japan || '不明';
+      
+      document.getElementById('res-conservative-price').innerText = `¥${(data.conservative_price || 0).toLocaleString()}`;
+      document.getElementById('res-max-buy').innerText = `¥${(data.max_buy_price || 0).toLocaleString()}`;
+      document.getElementById('res-shipping').innerText = `¥${(data.expected_shipping || 0).toLocaleString()}`;
       
       const badge = document.getElementById('res-badge');
-      badge.innerText = data.verdict; badge.className = 'badge ' + (data.verdict === '仕入れ推奨' ? 'green' : (data.verdict === '条件付き買い' ? 'yellow' : 'red'));
-      
-      const upsideList = document.getElementById('res-upside'); upsideList.innerHTML = '';
-      data.upside_conditions.forEach(item => { const li = document.createElement('li'); li.innerText = item; upsideList.appendChild(li); });
-      document.getElementById('res-reason').innerText = data.reason;
+      badge.innerText = data.verdict;
+      badge.className = 'badge';
+      if (data.verdict === '仕入れ推奨') badge.classList.add('green');
+      else if (data.verdict === '条件付き買い') badge.classList.add('yellow');
+      else badge.classList.add('red');
 
-      document.getElementById('inStorePrice').value = ''; document.getElementById('calc-net-profit').innerText = '¥0';
-      document.getElementById('calc-margin').innerText = '0%'; document.getElementById('result-sheet').classList.add('show');
+      const upsideList = document.getElementById('res-upside');
+      upsideList.innerHTML = '';
+      if (Array.isArray(data.upside_conditions)) {
+        data.upside_conditions.forEach(item => {
+          const li = document.createElement('li');
+          li.innerText = item;
+          upsideList.appendChild(li);
+        });
+      }
+
+      document.getElementById('res-reason').innerText = data.reason || '';
+
+      document.getElementById('inStorePrice').value = '';
+      document.getElementById('calc-net-profit').innerText = '¥0';
+      document.getElementById('calc-margin').innerText = '0%';
+
+      resultSheet.classList.add('show');
     }
 
     function calculateProfit() {
-      if (!currentValuation || !document.getElementById('inStorePrice').value) return;
-      const inStorePrice = Number(document.getElementById('inStorePrice').value);
-      const cp = currentValuation.conservative_price;
-      const netProfit = cp - (cp * 0.10) - currentValuation.expected_shipping - inStorePrice;
-      const profitMargin = cp > 0 ? (netProfit / cp) * 100 : 0;
-      const color = netProfit >= 1500 ? 'var(--success)' : (netProfit > 0 ? 'var(--warning)' : 'var(--danger)');
+      if (!currentValuation) return;
+      const inStorePriceRaw = document.getElementById('inStorePrice').value;
+      if (!inStorePriceRaw) {
+        document.getElementById('calc-net-profit').innerText = '¥0';
+        document.getElementById('calc-margin').innerText = '0%';
+        return;
+      }
 
-      const npEl = document.getElementById('calc-net-profit'); npEl.innerText = `¥${Math.floor(netProfit).toLocaleString()}`; npEl.style.color = color;
-      const pmEl = document.getElementById('calc-margin'); pmEl.innerText = `${profitMargin.toFixed(1)}%`; pmEl.style.color = color;
+      const inStorePrice = Number(inStorePriceRaw);
+      const cp = currentValuation.conservative_price || 0;
+      const ship = currentValuation.expected_shipping || 0;
+      
+      const netProfit = cp - (cp * 0.10) - ship - inStorePrice;
+      const profitMargin = cp > 0 ? (netProfit / cp) * 100 : 0;
+
+      const npEl = document.getElementById('calc-net-profit');
+      npEl.innerText = `¥${Math.floor(netProfit).toLocaleString()}`;
+      npEl.style.color = netProfit >= 1500 ? 'var(--success)' : (netProfit > 0 ? 'var(--warning)' : 'var(--danger)');
+      
+      const pmEl = document.getElementById('calc-margin');
+      pmEl.innerText = `${profitMargin.toFixed(1)}%`;
+      pmEl.style.color = netProfit >= 1500 ? 'var(--success)' : (netProfit > 0 ? 'var(--warning)' : 'var(--danger)');
     }
 
-    function closeResult() { document.getElementById('result-sheet').classList.remove('show'); }
-    function openApiModal() { document.getElementById('api-key-input').value = apiKey; document.getElementById('api-modal').style.display = 'flex'; }
+    function closeResult() {
+      resultSheet.classList.remove('show');
+    }
+
+    function openApiModal() {
+      document.getElementById('api-key-input').value = apiKey;
+      document.getElementById('api-modal').style.display = 'flex';
+    }
+
     function saveApiKey() {
       const val = document.getElementById('api-key-input').value.trim();
-      if (val) { localStorage.setItem('gemini_api_key', val); apiKey = val; document.getElementById('api-modal').style.display = 'none'; showToast("APIキーを保存しました", true); }
+      if (val) {
+        localStorage.setItem('gemini_api_key', val);
+        apiKey = val;
+        document.getElementById('api-modal').style.display = 'none';
+        showToast("APIキーを保存しました", true);
+      }
     }
-    function showLoader(show) { document.getElementById('loader').style.display = show ? 'flex' : 'none'; }
+
+    function showLoader(show) {
+      document.getElementById('loader').style.display = show ? 'flex' : 'none';
+    }
+
     function showToast(msg, isSuccess = false) {
-      const t = document.getElementById('toast'); t.innerText = msg; t.style.backgroundColor = isSuccess ? 'var(--success)' : 'var(--danger)';
-      t.style.display = 'block'; setTimeout(() => { t.style.display = 'none'; }, 3000);
+      const t = document.getElementById('toast');
+      t.innerText = msg;
+      t.style.backgroundColor = isSuccess ? 'var(--success)' : 'var(--danger)';
+      t.style.display = 'block';
+      setTimeout(() => { t.style.display = 'none'; }, 3000);
     }
   </script>
 </body>
