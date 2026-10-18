@@ -333,7 +333,7 @@
   <div class="toast" id="toast">エラーが発生しました</div>
   <script>
     // --- App State ---
-    let currentStep = 1; // 1: 全体撮影, 2: タグ撮影, 3: 査定実行
+    let currentStep = 1; 
     let fullImageB64 = null;
     let tagImageB64 = null;
     let currentCategory = 'スウェット/パーカー';
@@ -372,13 +372,14 @@
           video: { facingMode: "environment" }
         });
         videoElement.srcObject = stream;
+        videoElement.setAttribute('playsinline', true);
+        videoElement.play();
       } catch (err) {
         console.warn("Camera failed", err);
         showToast("カメラを起動できませんでした。写真選択をご利用ください。");
       }
     }
 
-    // --- Background Tap to Close ---
     function handleScannerClick(event) {
       if (resultSheet.classList.contains('show')) {
         closeResult();
@@ -387,7 +388,7 @@
 
     // --- UI Control ---
     function updateUI() {
-      btnMain.className = 'btn-main'; // reset class
+      btnMain.className = 'btn-main'; 
       if (currentStep === 1) {
         btnMain.innerHTML = '📸 1. 全体を撮影';
         stepGuide.innerHTML = 'STEP 1: 全体を撮影';
@@ -434,18 +435,20 @@
       updateUI();
     }
 
-    // --- Capture Logic ---
+    // --- Capture Logic (Safe Mode) ---
     function handleMainAction() {
       if (!apiKey) return openApiModal();
       
+      if (videoElement.readyState < 2 || videoElement.videoWidth === 0) {
+        return showToast("カメラの準備中です。数秒待ってからやり直してください。");
+      }
+      
       if (currentStep === 1) {
-        if (!videoElement.srcObject) return showToast("カメラ映像がありません");
-        captureFullImage();
+        if (!captureFullImage()) return;
         currentStep = 2;
         updateUI();
       } else if (currentStep === 2) {
-        if (!videoElement.srcObject) return showToast("カメラ映像がありません");
-        captureTagImage();
+        if (!captureTagImage()) return;
         currentStep = 3;
         updateUI();
       } else if (currentStep === 3) {
@@ -459,37 +462,58 @@
     }
 
     function captureFullImage() {
-      const canvas = document.createElement('canvas');
-      const maxDim = 800;
-      let w = videoElement.videoWidth;
-      let h = videoElement.videoHeight;
-      if (w > h) {
-        if (w > maxDim) { h *= maxDim / w; w = maxDim; }
-      } else {
-        if (h > maxDim) { w *= maxDim / h; h = maxDim; }
+      try {
+        const canvas = document.createElement('canvas');
+        const maxDim = 800;
+        let w = videoElement.videoWidth;
+        let h = videoElement.videoHeight;
+        if (w > h) {
+          if (w > maxDim) { h *= maxDim / w; w = maxDim; }
+        } else {
+          if (h > maxDim) { w *= maxDim / h; h = maxDim; }
+        }
+        canvas.width = Math.floor(w); 
+        canvas.height = Math.floor(h);
+        canvas.getContext('2d').drawImage(videoElement, 0, 0, canvas.width, canvas.height);
+        
+        const dataUrl = canvas.toDataURL('image/jpeg', 0.8);
+        if (!dataUrl || dataUrl === 'data:,') throw new Error("Canvas is empty");
+        
+        fullImageB64 = dataUrl.split(',')[1];
+        return true;
+      } catch (e) {
+        showToast("画像の取得に失敗しました。もう一度撮影してください。");
+        return false;
       }
-      canvas.width = w; canvas.height = h;
-      canvas.getContext('2d').drawImage(videoElement, 0, 0, w, h);
-      fullImageB64 = canvas.toDataURL('image/jpeg', 0.8).split(',')[1];
     }
 
     function captureTagImage() {
-      const canvas = document.createElement('canvas');
-      const vRect = videoElement.getBoundingClientRect();
-      const fRect = scanFrame.getBoundingClientRect();
-      
-      const scaleX = videoElement.videoWidth / vRect.width;
-      const scaleY = videoElement.videoHeight / vRect.height;
-      
-      const cropW = fRect.width * scaleX;
-      const cropH = fRect.height * scaleY;
-      const cropX = (fRect.left - vRect.left) * scaleX;
-      const cropY = (fRect.top - vRect.top) * scaleY;
-      
-      canvas.width = cropW;
-      canvas.height = cropH;
-      canvas.getContext('2d').drawImage(videoElement, cropX, cropY, cropW, cropH, 0, 0, cropW, cropH);
-      tagImageB64 = canvas.toDataURL('image/jpeg', 0.8).split(',')[1];
+      try {
+        const canvas = document.createElement('canvas');
+        const vRect = videoElement.getBoundingClientRect();
+        const fRect = scanFrame.getBoundingClientRect();
+        
+        const scaleX = videoElement.videoWidth / vRect.width;
+        const scaleY = videoElement.videoHeight / vRect.height;
+        
+        const cropW = Math.floor(fRect.width * scaleX);
+        const cropH = Math.floor(fRect.height * scaleY);
+        const cropX = Math.floor((fRect.left - vRect.left) * scaleX);
+        const cropY = Math.floor((fRect.top - vRect.top) * scaleY);
+        
+        canvas.width = cropW;
+        canvas.height = cropH;
+        canvas.getContext('2d').drawImage(videoElement, cropX, cropY, cropW, cropH, 0, 0, cropW, cropH);
+        
+        const dataUrl = canvas.toDataURL('image/jpeg', 0.8);
+        if (!dataUrl || dataUrl === 'data:,') throw new Error("Canvas is empty");
+        
+        tagImageB64 = dataUrl.split(',')[1];
+        return true;
+      } catch (e) {
+        showToast("タグ画像の取得に失敗しました。もう一度撮影してください。");
+        return false;
+      }
     }
 
     // --- File Upload Fallback ---
@@ -502,27 +526,31 @@
       reader.onload = (e) => {
         const img = new Image();
         img.onload = () => {
-          const canvas = document.createElement('canvas');
-          let w = img.width, h = img.height;
-          const maxDim = 800;
-          if (w > maxDim || h > maxDim) {
-             if(w > h){ h *= maxDim/w; w = maxDim; } else { w *= maxDim/h; h = maxDim; }
+          try {
+            const canvas = document.createElement('canvas');
+            let w = img.width, h = img.height;
+            const maxDim = 800;
+            if (w > maxDim || h > maxDim) {
+               if(w > h){ h *= maxDim/w; w = maxDim; } else { w *= maxDim/h; h = maxDim; }
+            }
+            
+            if (currentStep === 1) {
+              canvas.width = Math.floor(w); canvas.height = Math.floor(h);
+              canvas.getContext('2d').drawImage(img, 0, 0, canvas.width, canvas.height);
+              fullImageB64 = canvas.toDataURL('image/jpeg', 0.8).split(',')[1];
+              currentStep = 2;
+            } else if (currentStep === 2 || currentStep === 3) {
+              const cropW = Math.floor(img.width * 0.6); const cropH = Math.floor(img.height * 0.4);
+              const startX = Math.floor((img.width - cropW) / 2); const startY = Math.floor((img.height - cropH) / 2);
+              canvas.width = cropW; canvas.height = cropH;
+              canvas.getContext('2d').drawImage(img, startX, startY, cropW, cropH, 0, 0, cropW, cropH);
+              tagImageB64 = canvas.toDataURL('image/jpeg', 0.8).split(',')[1];
+              currentStep = 3;
+            }
+            updateUI();
+          } catch(err) {
+            showToast("画像の読み込みに失敗しました。別の画像をお試しください。");
           }
-          
-          if (currentStep === 1) {
-            canvas.width = w; canvas.height = h;
-            canvas.getContext('2d').drawImage(img, 0, 0, w, h);
-            fullImageB64 = canvas.toDataURL('image/jpeg', 0.8).split(',')[1];
-            currentStep = 2;
-          } else if (currentStep === 2 || currentStep === 3) {
-            const cropW = img.width * 0.6; const cropH = img.height * 0.4;
-            const startX = (img.width - cropW) / 2; const startY = (img.height - cropH) / 2;
-            canvas.width = cropW; canvas.height = cropH;
-            canvas.getContext('2d').drawImage(img, startX, startY, cropW, cropH, 0, 0, cropW, cropH);
-            tagImageB64 = canvas.toDataURL('image/jpeg', 0.8).split(',')[1];
-            currentStep = 3;
-          }
-          updateUI();
         };
         img.src = e.target.result;
       };
@@ -605,11 +633,10 @@
           body: JSON.stringify(payload)
         });
 
-        // エラー時の詳細を抽出して表示する処理
         if (!response.ok) {
           const errorData = await response.json().catch(() => ({}));
           const detailMsg = errorData.error?.message || response.statusText;
-          throw new Error(`APIエラー(${response.status}): ${detailMsg}`);
+          throw new Error(`APIエラー(${response.status}): \n${detailMsg}`);
         }
         
         const data = await response.json();
@@ -620,7 +647,6 @@
       } catch (err) {
         console.error(err);
         showLoader(false);
-        // トーストに具体的なエラー理由を表示
         showToast(err.message);
       }
     }
@@ -729,7 +755,7 @@
       t.innerText = msg;
       t.style.backgroundColor = isSuccess ? 'var(--success)' : 'var(--danger)';
       t.style.display = 'block';
-      setTimeout(() => { t.style.display = 'none'; }, 5000); // エラーが読みきれるよう5秒に延長
+      setTimeout(() => { t.style.display = 'none'; }, 5000); 
     }
   </script>
 </body>
