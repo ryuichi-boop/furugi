@@ -2,760 +2,403 @@
 <html lang="ja">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
-  <title>古着瞬間査定Pro v2</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>古着瞬間査定Pro Lite</title>
   <style>
     :root {
-      --bg-color: #0f172a; /* slate-900 */
-      --panel-bg: #1e293b; /* slate-800 */
-      --text-main: #f8fafc; /* slate-50 */
-      --text-muted: #94a3b8; /* slate-400 */
-      --accent-color: #3b82f6; /* blue-500 */
-      --scan-frame: #ef4444; /* red-500 */
-      --success: #22c55e; /* green-500 */
-      --warning: #eab308; /* yellow-500 */
-      --danger: #ef4444; /* red-500 */
-      --mercari: #ea3323; /* Mercari Red */
+      --bg-color: #0f172a;
+      --card-bg: #1e293b;
+      --accent: #ef4444;
+      --primary: #2563eb;
+      --text: #f8fafc;
+      --text-sub: #94a3b8;
+      --green: #22c55e;
+      --yellow: #eab308;
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; }
+    body {
+      background-color: var(--bg-color);
+      color: var(--text);
+      padding: 16px;
+      padding-bottom: 60px;
     }
 
-    * { box-sizing: border-box; margin: 0; padding: 0; }
-    html, body {
-      width: 100%; height: 100%;
-      background-color: var(--bg-color); color: var(--text-main);
-      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
-      overflow-x: hidden;
-    }
-
-    /* Header */
     header {
-      position: fixed; top: 0; left: 0; right: 0; height: 60px;
-      display: flex; justify-content: space-between; align-items: center; padding: 0 16px;
-      background: linear-gradient(to bottom, rgba(15,23,42,0.95), transparent);
-      z-index: 100; pointer-events: auto;
+      display: flex; justify-content: space-between; align-items: center;
+      margin-bottom: 20px; padding-bottom: 12px; border-bottom: 1px solid #334155;
     }
-    header h1 { font-size: 18px; font-weight: bold; text-shadow: 0 2px 4px rgba(0,0,0,0.8); }
-    .settings-btn { background: none; border: none; color: white; font-size: 24px; cursor: pointer; padding: 8px; }
+    header h1 { font-size: 1.15rem; font-weight: 700; }
+    .btn-icon { background: none; border: none; font-size: 1.3rem; cursor: pointer; color: var(--text); }
 
-    /* Scanner View */
-    .scanner-container {
-      position: fixed; top: 0; left: 0; width: 100vw; height: 100vh;
-      display: flex; justify-content: center; align-items: center; background-color: #000;
-      z-index: 10; cursor: pointer; flex-direction: column;
+    /* メインの写真投入ボタン */
+    .upload-zone {
+      background: var(--card-bg); border: 2px dashed #475569; border-radius: 16px;
+      padding: 32px 16px; text-align: center; cursor: pointer; display: block;
+      transition: border-color 0.2s;
     }
-    #camera-stream { position: absolute; width: 100%; height: 100%; object-fit: cover; }
-    
-    .step-guide {
-      position: absolute; top: 80px; left: 50%; transform: translateX(-50%);
-      background: rgba(15,23,42,0.85); padding: 10px 20px; border-radius: 99px;
-      font-size: 15px; font-weight: bold; color: var(--warning);
-      border: 1px solid var(--warning); z-index: 20; white-space: nowrap; text-shadow: 0 1px 2px rgba(0,0,0,0.8);
-    }
+    .upload-zone:active { border-color: var(--primary); }
+    .upload-zone span { font-size: 2.2rem; display: block; margin-bottom: 8px; }
+    .upload-zone strong { font-size: 1.1rem; display: block; margin-bottom: 4px; }
+    .upload-zone p { font-size: 0.8rem; color: var(--text-sub); }
 
-    .overlay {
-      position: absolute; width: 100%; height: 100%; pointer-events: none;
-      display: flex; justify-content: center; align-items: center; z-index: 15;
+    /* プレビュー画像 */
+    .preview-bar {
+      display: flex; gap: 8px; margin-top: 14px; overflow-x: auto;
     }
-    .scan-frame {
-      width: 280px; height: 180px; border: 3px solid var(--scan-frame); border-radius: 16px;
-      box-shadow: 0 0 0 9999px rgba(0,0,0,0.65); position: relative; display: none;
-    }
-    .scan-frame::after {
-      content: 'タグを枠内に収めてください'; position: absolute; bottom: -30px; left: 0; right: 0;
-      text-align: center; color: rgba(255,255,255,0.9); font-size: 12px; font-weight: bold; text-shadow: 0 1px 2px rgba(0,0,0,1);
+    .preview-img {
+      width: 70px; height: 70px; border-radius: 8px; object-fit: cover; border: 1px solid #334155;
     }
 
-    /* Thumbnails */
-    .thumbnail-bar {
-      position: absolute; top: 130px; left: 16px; display: flex; flex-direction: column; gap: 12px; z-index: 20;
+    /* 査定結果カード */
+    .result-card {
+      margin-top: 20px; background: var(--card-bg); border-radius: 16px;
+      padding: 18px; border: 1px solid #334155; display: none;
     }
-    .thumb-item {
-      width: 60px; height: 80px; border-radius: 8px; border: 2px solid white;
-      background-color: rgba(255,255,255,0.1); background-size: cover; background-position: center;
-      display: none; position: relative; box-shadow: 0 4px 6px rgba(0,0,0,0.5);
+    .badge-verdict {
+      display: inline-block; padding: 6px 14px; border-radius: 6px;
+      font-weight: 800; font-size: 1rem; margin-bottom: 10px;
     }
-    .thumb-item::before {
-      content: '🔄'; position: absolute; top: -8px; right: -8px; background: var(--panel-bg);
-      border-radius: 50%; font-size: 12px; padding: 4px; box-shadow: 0 2px 4px rgba(0,0,0,0.5);
+    .badge-buy { background: rgba(34, 197, 94, 0.2); color: var(--green); border: 1px solid var(--green); }
+    .badge-cond { background: rgba(234, 179, 8, 0.2); color: var(--yellow); border: 1px solid var(--yellow); }
+    .badge-pass { background: rgba(239, 68, 68, 0.2); color: var(--accent); border: 1px solid var(--accent); }
+
+    /* メルカリ直行枠 */
+    .mercari-box {
+      margin: 14px 0; padding: 12px; background: #0f172a; border-radius: 8px; border: 1px solid #334155;
     }
-    .thumb-label {
-      position: absolute; bottom: -20px; left: 0; right: 0; text-align: center; font-size: 10px; font-weight: bold; text-shadow: 0 1px 2px black;
+    .btn-mercari {
+      display: block; width: 100%; background: #e11d48; color: #fff; text-align: center;
+      padding: 12px; border-radius: 8px; font-weight: bold; text-decoration: none; font-size: 0.95rem;
+    }
+    .btn-copy-kw {
+      width: 100%; margin-top: 8px; padding: 8px; background: #334155; color: var(--text-sub);
+      border: none; border-radius: 6px; font-size: 0.75rem; cursor: pointer;
     }
 
-    /* Bottom Controls */
-    .bottom-controls {
-      position: fixed; bottom: 0; left: 0; right: 0;
-      padding: 16px; padding-bottom: calc(16px + env(safe-area-inset-bottom, 16px));
-      background: linear-gradient(to top, rgba(15,23,42,1) 50%, transparent);
-      z-index: 100; display: flex; flex-direction: column; gap: 14px;
+    /* 相場グリッド */
+    .price-grid {
+      display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin: 12px 0; background: #0f172a;
+      padding: 12px; border-radius: 8px;
     }
-    .categories {
-      display: flex; gap: 10px; overflow-x: auto; padding-bottom: 4px; scrollbar-width: none; -webkit-overflow-scrolling: touch;
+    .price-cell span { display: block; font-size: 0.75rem; color: var(--text-sub); margin-bottom: 2px; }
+    .price-cell strong { font-size: 1.2rem; }
+
+    /* 後入れ店頭価格 */
+    .instore-box { background: #0f172a; padding: 12px; border-radius: 8px; margin: 12px 0; }
+    .instore-box input {
+      width: 100%; padding: 10px; background: #1e293b; border: 1px solid #475569;
+      border-radius: 6px; color: #fff; font-size: 1.1rem; margin-top: 4px; outline: none;
     }
-    .categories::-webkit-scrollbar { display: none; }
-    .category-btn {
-      flex: 0 0 auto; padding: 10px 18px; border-radius: 99px;
-      background-color: rgba(30,41,59,0.85); border: 1px solid var(--text-muted);
-      color: var(--text-muted); font-size: 14px; font-weight: bold; cursor: pointer;
+    .profit-output { margin-top: 8px; font-weight: bold; font-size: 0.95rem; }
+
+    /* 技術介入カード */
+    .tech-box {
+      background: rgba(37, 99, 235, 0.1); border-left: 3px solid var(--primary);
+      padding: 12px; border-radius: 4px; margin: 12px 0; font-size: 0.85rem;
     }
-    .category-btn.active { background-color: var(--text-main); color: var(--bg-color); border-color: var(--text-main); }
-    
-    .action-bar { display: flex; gap: 12px; }
-    .btn-main {
-      flex: 1; padding: 16px; border-radius: 12px; background-color: var(--accent-color); color: white;
-      font-size: 16px; font-weight: bold; border: none; display: flex; justify-content: center; align-items: center; cursor: pointer;
-      box-shadow: 0 4px 6px rgba(0,0,0,0.3); transition: background-color 0.2s;
+    .tech-item { margin-top: 6px; }
+    .tech-label { font-weight: bold; color: #60a5fa; }
+
+    /* ローダー＆モーダル */
+    .loader {
+      display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.7);
+      justify-content: center; align-items: center; flex-direction: column; z-index: 300;
     }
-    .btn-main:active { transform: scale(0.98); }
-    .btn-main.step2 { background-color: #f59e0b; } /* amber-500 */
-    .btn-main.step3 { background-color: var(--success); }
-    .btn-sub {
-      width: 54px; height: 54px; border-radius: 12px; background-color: var(--panel-bg); color: white;
-      border: 1px solid var(--text-muted); display: flex; justify-content: center; align-items: center; font-size: 20px; cursor: pointer;
+    .spinner {
+      width: 44px; height: 44px; border: 4px solid #334155; border-top-color: var(--accent);
+      border-radius: 50%; animation: spin 0.8s linear infinite; margin-bottom: 12px;
     }
-    #file-input { display: none; }
-
-    /* Result Sheet */
-    .result-sheet {
-      position: fixed; bottom: 0; left: 0; right: 0; background-color: var(--panel-bg);
-      border-top-left-radius: 24px; border-top-right-radius: 24px; padding: 16px 20px 40px;
-      z-index: 200; transform: translateY(105%); transition: transform 0.3s cubic-bezier(0.16, 1, 0.3, 1);
-      max-height: 85vh; overflow-y: auto; -webkit-overflow-scrolling: touch; box-shadow: 0 -8px 30px rgba(0,0,0,0.7);
-    }
-    .result-sheet.show { transform: translateY(0); }
-    .sheet-header-actions { margin-bottom: 20px; }
-    .btn-next-scan {
-      width: 100%; padding: 14px; border-radius: 12px; background-color: #334155; color: #f8fafc;
-      border: 1px solid #475569; font-size: 16px; font-weight: bold; display: flex; justify-content: center; align-items: center; gap: 8px; cursor: pointer; box-shadow: 0 4px 6px rgba(0,0,0,0.2);
-    }
-    .btn-next-scan:active { background-color: #475569; transform: scale(0.98); }
-
-    .header-row { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 16px; }
-    .badge { display: inline-block; padding: 6px 14px; border-radius: 8px; font-weight: bold; font-size: 16px; }
-    .badge.green { background-color: rgba(34,197,94,0.2); color: var(--success); border: 1px solid var(--success); }
-    .badge.yellow { background-color: rgba(234,179,8,0.2); color: var(--warning); border: 1px solid var(--warning); }
-    .badge.red { background-color: rgba(239,68,68,0.2); color: var(--danger); border: 1px solid var(--danger); }
-    .item-title { font-size: 15px; font-weight: bold; color: #e2e8f0; margin-bottom: 12px; line-height: 1.4; border-bottom: 1px solid #334155; padding-bottom: 8px;}
-
-    /* Mercari Search Block */
-    .mercari-block { background: rgba(234, 51, 35, 0.1); border: 1px solid rgba(234, 51, 35, 0.3); border-radius: 12px; padding: 16px; margin-bottom: 20px; }
-    .mercari-label { font-size: 12px; color: #fca5a5; margin-bottom: 8px; font-weight: bold; }
-    .mercari-keyword { font-size: 15px; font-weight: bold; margin-bottom: 12px; color: white; background: rgba(0,0,0,0.3); padding: 8px; border-radius: 6px; word-break: break-all; }
-    .mercari-actions { display: flex; gap: 10px; }
-    .btn-mercari { flex: 2; background-color: var(--mercari); color: white; text-decoration: none; padding: 12px; border-radius: 8px; text-align: center; font-weight: bold; font-size: 14px; display: block; box-shadow: 0 2px 4px rgba(0,0,0,0.3); }
-    .btn-copy { flex: 1; background-color: transparent; border: 1px solid #fca5a5; color: #fca5a5; border-radius: 8px; font-weight: bold; cursor: pointer; }
-
-    .summary-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 16px; }
-    .summary-item { background: rgba(0,0,0,0.25); padding: 10px; border-radius: 8px; }
-    .summary-label { font-size: 11px; color: var(--text-muted); margin-bottom: 4px; }
-    .summary-val { font-size: 13px; font-weight: bold; }
-
-    .price-box { border: 1px solid #475569; border-radius: 12px; padding: 16px; margin-bottom: 16px; background: rgba(15,23,42,0.4); }
-    .price-row { display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px; }
-    .price-row:last-child { margin-bottom: 0; }
-    .price-row.highlight { border-top: 1px dashed #475569; padding-top: 10px; margin-top: 10px; }
-    
-    .input-group { margin-top: 16px; }
-    .input-group label { display: block; font-size: 12px; color: var(--text-muted); margin-bottom: 6px; }
-    .store-price-input { width: 100%; background: var(--bg-color); color: white; border: 1px solid var(--accent-color); border-radius: 8px; padding: 14px; font-size: 18px; font-weight: bold; outline: none; }
-
-    .profit-results { margin-top: 12px; display: flex; justify-content: space-between; background: rgba(59,130,246,0.12); padding: 16px; border-radius: 8px; border: 1px solid rgba(59,130,246,0.3); }
-    .profit-val { font-size: 20px; font-weight: bold; color: var(--accent-color); }
-
-    /* Tech Intervention Card */
-    .tech-card { background: linear-gradient(145deg, #1e293b, #0f172a); border: 1px solid #475569; border-radius: 12px; padding: 16px; margin-top: 20px; margin-bottom: 20px;}
-    .tech-title { font-size: 14px; font-weight: bold; margin-bottom: 12px; color: #fbbf24; display: flex; align-items: center; gap: 6px; }
-    .tech-item { margin-bottom: 12px; }
-    .tech-item:last-child { margin-bottom: 0; border-bottom: none; padding-bottom: 0;}
-    .tech-label { display: inline-block; background: #334155; padding: 2px 8px; border-radius: 4px; font-size: 10px; font-weight: bold; color: #cbd5e1; margin-bottom: 4px; }
-    .tech-desc { font-size: 13px; color: #f1f5f9; line-height: 1.5; }
-
-    .section-title { font-size: 13px; font-weight: bold; margin: 18px 0 8px; border-left: 3px solid var(--accent-color); padding-left: 8px; color: #e2e8f0; }
-    .reason-text { font-size: 13px; line-height: 1.6; color: #cbd5e1; background: rgba(0,0,0,0.2); padding: 12px; border-radius: 8px; }
-
-    /* Modals & Loaders */
-    .modal { position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; background: rgba(0,0,0,0.8); z-index: 300; display: none; justify-content: center; align-items: center; padding: 20px; }
-    .modal-content { background: var(--panel-bg); width: 100%; max-width: 400px; padding: 24px; border-radius: 16px; }
-    .modal-title { font-size: 16px; font-weight: bold; margin-bottom: 16px; }
-    .api-input { width: 100%; padding: 12px; border-radius: 8px; border: 1px solid var(--text-muted); background: var(--bg-color); color: white; margin-bottom: 16px; font-size: 14px; }
-    .btn-save { width: 100%; padding: 12px; border-radius: 8px; background: var(--accent-color); color: white; border: none; font-weight: bold; cursor: pointer; }
-
-    .loader { display: none; position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%); background: rgba(30,41,59,0.95); padding: 24px 32px; border-radius: 16px; z-index: 400; flex-direction: column; align-items: center; box-shadow: 0 10px 25px rgba(0,0,0,0.5); }
-    .spinner { width: 40px; height: 40px; border: 4px solid rgba(255,255,255,0.1); border-top-color: var(--accent-color); border-radius: 50%; animation: spin 1s linear infinite; margin-bottom: 14px; }
     @keyframes spin { to { transform: rotate(360deg); } }
-    
-    .toast { position: fixed; top: 20px; left: 50%; transform: translateX(-50%); background: var(--danger); color: white; padding: 12px 24px; border-radius: 8px; font-weight: bold; font-size: 14px; z-index: 500; display: none; box-shadow: 0 4px 12px rgba(0,0,0,0.3); max-width: 90vw; text-align: center; }
+
+    .modal {
+      display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.85);
+      justify-content: center; align-items: center; z-index: 400; padding: 16px;
+    }
+    .modal-content { background: var(--card-bg); width: 100%; max-width: 360px; padding: 20px; border-radius: 12px; }
+    .modal-content input {
+      width: 100%; padding: 10px; margin: 12px 0; background: #0f172a; border: 1px solid #475569;
+      color: #fff; border-radius: 6px;
+    }
+    .modal-content button {
+      width: 100%; padding: 10px; background: var(--primary); color: #fff; border: none; border-radius: 6px; font-weight: bold;
+    }
   </style>
 </head>
 <body>
 
-  <!-- Header -->
   <header>
-    <h1>古着瞬間査定Pro v2</h1>
-    <button class="settings-btn" onclick="openApiModal()">⚙️</button>
+    <h1>古着瞬間査定Pro Lite</h1>
+    <button class="btn-icon" onclick="openKeyModal()">⚙️</button>
   </header>
 
-  <!-- Scanner Area -->
-  <div class="scanner-container" id="scanner-container" onclick="handleScannerClick(event)">
-    <video id="camera-stream" autoplay playsinline muted></video>
-    
-    <div class="step-guide" id="step-guide">STEP 1: 全体を撮影</div>
-    
-    <div class="overlay">
-      <div class="scan-frame" id="scan-frame"></div>
+  <!-- 写真選択エリア（タップでアルバム起動・複数選択可能） -->
+  <label class="upload-zone">
+    <span>📸</span>
+    <strong>写真を選んで即査定</strong>
+    <p>「全体」と「タグ」の2枚をまとめて選択（1枚でも可）</p>
+    <input type="file" id="imageInput" accept="image/*" multiple style="display:none;" onchange="handleImages(event)">
+  </label>
+
+  <!-- 選択した画像のサムネイル一覧 -->
+  <div class="preview-bar" id="previewBar"></div>
+
+  <!-- 査定結果カード -->
+  <div class="result-card" id="resultCard">
+    <div id="resBadge" class="badge-verdict">査定中...</div>
+    <div id="resItemName" style="font-weight:bold; font-size:1.1rem; margin-bottom:4px;">-</div>
+    <div id="resTagInfo" style="font-size:0.8rem; color:var(--text-sub); margin-bottom:12px;">-</div>
+
+    <!-- メルカリ直行リンク -->
+    <div class="mercari-box">
+      <a href="#" target="_blank" id="btnMercariLink" class="btn-mercari">🔍 メルカリ売り切れ相場を見る</a>
+      <button class="btn-copy-kw" id="btnCopyKw" onclick="copyMercariQuery()">キーワードをコピー</button>
     </div>
-    
-    <div class="thumbnail-bar">
-      <div class="thumb-item" id="thumb-full" onclick="resetToStep(1)">
-        <div class="thumb-label">全体</div>
+
+    <!-- 価格サマリー -->
+    <div class="price-grid">
+      <div class="price-cell">
+        <span>手堅い下限想定売価</span>
+        <strong id="resConservativePrice">¥0</strong>
       </div>
-      <div class="thumb-item" id="thumb-tag" onclick="resetToStep(2)">
-        <div class="thumb-label">タグ</div>
+      <div class="price-cell">
+        <span>推奨仕入れ上限</span>
+        <strong id="resMaxBuyPrice" style="color:var(--green);">¥0 以下</strong>
       </div>
     </div>
+
+    <!-- 後入れ店頭価格再計算 -->
+    <div class="instore-box">
+      <label style="font-size:0.75rem; color:var(--text-sub);">店頭値札の価格を入力（自動で純利益を計算）</label>
+      <input type="number" id="inStorePriceInput" placeholder="例: 1320" oninput="recalcProfit()">
+      <div class="profit-output" id="profitOutputText"></div>
+    </div>
+
+    <!-- 技術介入カード -->
+    <div class="tech-box">
+      <strong>🛠️ あなたの技術で化けるポイント:</strong>
+      <div class="tech-item"><span class="tech-label">【タイトルSEO】</span><div id="techSeo" style="color:#fff; margin-top:2px;">-</div></div>
+      <div class="tech-item"><span class="tech-label">【撮影・見せ方】</span><div id="techStyling" style="color:#cbd5e1; margin-top:2px;">-</div></div>
+      <div class="tech-item"><span class="tech-label">【15分メンテ】</span><div id="techMaint" style="color:#cbd5e1; margin-top:2px;">-</div></div>
+    </div>
+
+    <p id="resReason" style="font-size:0.75rem; color:var(--text-sub); margin-top:10px; line-height:1.4;"></p>
   </div>
 
-  <!-- Bottom Controls -->
-  <div class="bottom-controls">
-    <div class="categories" id="category-list">
-      <button class="category-btn active" data-val="スウェット/パーカー">スウェット/パーカー</button>
-      <button class="category-btn" data-val="アウター/JKT">アウター/JKT</button>
-      <button class="category-btn" data-val="Tシャツ">Tシャツ</button>
-      <button class="category-btn" data-val="シャツ">シャツ</button>
-      <button class="category-btn" data-val="ボトムス">ボトムス</button>
-    </div>
-    
-    <div class="action-bar">
-      <button class="btn-main" id="btn-main-action" onclick="handleMainAction()">📸 1. 全体を撮影</button>
-      <label class="btn-sub">
-        📷
-        <input type="file" id="file-input" accept="image/*" onchange="handleFileUpload(event)">
-      </label>
-    </div>
-  </div>
-
-  <!-- Result Sheet -->
-  <div class="result-sheet" id="result-sheet">
-    <div class="sheet-header-actions">
-      <button class="btn-next-scan" onclick="closeResult()">✕ 閉じて次の服をスキャン</button>
-    </div>
-
-    <div class="header-row">
-      <div id="res-badge" class="badge">判定中...</div>
-    </div>
-    <div class="item-title" id="res-item-name">-</div>
-
-    <!-- Mercari Block -->
-    <div class="mercari-block">
-      <div class="mercari-label">🔍 メルカリ売り切れ相場 直行</div>
-      <div class="mercari-keyword" id="res-mercari-keyword">-</div>
-      <div class="mercari-actions">
-        <a href="#" id="res-mercari-link" target="_blank" class="btn-mercari">メルカリを開く ↗</a>
-        <button class="btn-copy" onclick="copyMercariKeyword()">コピー</button>
-      </div>
-    </div>
-    
-    <div class="summary-grid">
-      <div class="summary-item"><div class="summary-label">ブランド</div><div class="summary-val" id="res-brand">-</div></div>
-      <div class="summary-item"><div class="summary-label">推定年代</div><div class="summary-val" id="res-era">-</div></div>
-      <div class="summary-item"><div class="summary-label">表記サイズ</div><div class="summary-val" id="res-raw-size">-</div></div>
-      <div class="summary-item"><div class="summary-label">換算サイズ</div><div class="summary-val" id="res-jp-size">-</div></div>
-    </div>
-
-    <div class="price-box">
-      <div class="price-row">
-        <span class="summary-label">最悪ケース想定売価</span>
-        <span class="summary-val" id="res-conservative-price">¥0</span>
-      </div>
-      <div class="price-row highlight">
-        <span class="summary-label" style="color: var(--success); font-weight: bold;">推奨仕入れ上限</span>
-        <span class="summary-val" id="res-max-buy" style="color: var(--success); font-size: 18px;">¥0</span>
-      </div>
-      <div class="price-row">
-        <span class="summary-label">想定送料目安</span>
-        <span class="summary-val" id="res-shipping">¥0</span>
-      </div>
-    </div>
-
-    <div class="input-group">
-      <label>後入れ店頭価格 (仕入れ値を入力して利益計算)</label>
-      <input type="number" inputmode="numeric" id="inStorePrice" class="store-price-input" placeholder="例: 1500" oninput="calculateProfit()">
-    </div>
-
-    <div class="profit-results">
-      <div>
-        <div class="summary-label">見込純利益</div>
-        <div class="profit-val" id="calc-net-profit">¥0</div>
-      </div>
-      <div style="text-align: right;">
-        <div class="summary-label">利益率</div>
-        <div class="profit-val" id="calc-margin">0%</div>
-      </div>
-    </div>
-
-    <!-- Tech Intervention -->
-    <div class="tech-card">
-      <div class="tech-title">🛠️ 技術介入ポテンシャル</div>
-      <div class="tech-item">
-        <div class="tech-label">タイトルSEO</div>
-        <div class="tech-desc" id="res-tech-seo">-</div>
-      </div>
-      <div class="tech-item">
-        <div class="tech-label">見せ方・スタイリング</div>
-        <div class="tech-desc" id="res-tech-style">-</div>
-      </div>
-      <div class="tech-item">
-        <div class="tech-label">15分メンテナンス</div>
-        <div class="tech-desc" id="res-tech-maint">-</div>
-      </div>
-    </div>
-
-    <div class="section-title">💡 総合査定根拠</div>
-    <div class="reason-text" id="res-reason">-</div>
-  </div>
-
-  <!-- API Key Modal -->
-  <div class="modal" id="api-modal">
+  <!-- APIキーモーダル -->
+  <div class="modal" id="keyModal">
     <div class="modal-content">
-      <div class="modal-title">Gemini APIキー設定</div>
-      <p style="font-size: 12px; color: var(--text-muted); margin-bottom: 12px;">※APIキーは端末(localStorage)にのみ保存されます。</p>
-      <input type="password" id="api-key-input" class="api-input" placeholder="AIzaSy...">
-      <button class="btn-save" onclick="saveApiKey()">保存して閉じる</button>
+      <h3>Gemini APIキー設定</h3>
+      <p style="font-size:0.75rem; color:var(--text-sub); margin-top:4px;">Google AI StudioのAPIキーを入力してください。</p>
+      <input type="password" id="apiKeyInput" placeholder="AIzaSy...">
+      <button onclick="saveApiKey()">保存して閉じる</button>
     </div>
   </div>
 
-  <!-- Loader -->
+  <!-- ローディング -->
   <div class="loader" id="loader">
     <div class="spinner"></div>
-    <div style="font-weight: bold; font-size: 14px;">画像解析＆相場算出中...</div>
+    <div style="font-weight:bold; font-size:0.9rem;">画像を解析して査定中...</div>
   </div>
 
-  <!-- Toast -->
-  <div class="toast" id="toast">エラーが発生しました</div>
   <script>
-    // --- App State ---
-    let currentStep = 1; 
-    let fullImageB64 = null;
-    let tagImageB64 = null;
-    let currentCategory = 'スウェット/パーカー';
-    let apiKey = localStorage.getItem('gemini_api_key') || '';
     let currentValuation = null;
-    
-    // DOM Elements
-    const videoElement = document.getElementById('camera-stream');
-    const resultSheet = document.getElementById('result-sheet');
-    const btnMain = document.getElementById('btn-main-action');
-    const stepGuide = document.getElementById('step-guide');
-    const scanFrame = document.getElementById('scan-frame');
-    const thumbFull = document.getElementById('thumb-full');
-    const thumbTag = document.getElementById('thumb-tag');
+    let mercariQuery = '';
 
-    // Category Selector
-    document.querySelectorAll('.category-btn').forEach(btn => {
-      btn.addEventListener('click', (e) => {
-        document.querySelectorAll('.category-btn').forEach(b => b.classList.remove('active'));
-        e.target.classList.add('active');
-        currentCategory = e.target.getAttribute('data-val');
-      });
+    window.addEventListener('DOMContentLoaded', () => {
+      if (!localStorage.getItem('gemini_api_key')) openKeyModal();
     });
 
-    // Init
-    window.onload = () => {
-      if (!apiKey) openApiModal();
-      startCamera();
-      updateUI();
-    };
-
-    // --- Camera Setup ---
-    async function startCamera() {
-      try {
-        const stream = await navigator.mediaDevices.getUserMedia({
-          video: { facingMode: "environment" }
-        });
-        videoElement.srcObject = stream;
-        videoElement.setAttribute('playsinline', true);
-        videoElement.play();
-      } catch (err) {
-        console.warn("Camera failed", err);
-        showToast("カメラを起動できませんでした。写真選択をご利用ください。");
-      }
+    function openKeyModal() {
+      document.getElementById('apiKeyInput').value = localStorage.getItem('gemini_api_key') || '';
+      document.getElementById('keyModal').style.display = 'flex';
+    }
+    function saveApiKey() {
+      const val = document.getElementById('apiKeyInput').value.trim();
+      if (val) localStorage.setItem('gemini_api_key', val);
+      document.getElementById('keyModal').style.display = 'none';
     }
 
-    function handleScannerClick(event) {
-      if (resultSheet.classList.contains('show')) {
-        closeResult();
-      }
-    }
-
-    // --- UI Control ---
-    function updateUI() {
-      btnMain.className = 'btn-main'; 
-      if (currentStep === 1) {
-        btnMain.innerHTML = '📸 1. 全体を撮影';
-        stepGuide.innerHTML = 'STEP 1: 全体を撮影';
-        scanFrame.style.display = 'none';
-        
-        if(fullImageB64) {
-          thumbFull.style.display = 'block';
-          thumbFull.style.backgroundImage = `url(data:image/jpeg;base64,${fullImageB64})`;
-        } else {
-          thumbFull.style.display = 'none';
-        }
-        thumbTag.style.display = 'none';
-        
-      } else if (currentStep === 2) {
-        btnMain.innerHTML = '🏷️ 2. タグを枠内で撮影';
-        btnMain.classList.add('step2');
-        stepGuide.innerHTML = 'STEP 2: タグを枠に合わせて撮影';
-        scanFrame.style.display = 'block';
-        
-        thumbFull.style.display = 'block';
-        thumbFull.style.backgroundImage = `url(data:image/jpeg;base64,${fullImageB64})`;
-        
-        if(tagImageB64) {
-          thumbTag.style.display = 'block';
-          thumbTag.style.backgroundImage = `url(data:image/jpeg;base64,${tagImageB64})`;
-        } else {
-          thumbTag.style.display = 'none';
-        }
-      } else if (currentStep === 3) {
-        btnMain.innerHTML = '⚡ 2枚で精密査定開始';
-        btnMain.classList.add('step3');
-        stepGuide.innerHTML = '査定準備完了';
-        scanFrame.style.display = 'none';
-        
-        thumbTag.style.display = 'block';
-        thumbTag.style.backgroundImage = `url(data:image/jpeg;base64,${tagImageB64})`;
-      }
-    }
-
-    function resetToStep(stepNum) {
-      currentStep = stepNum;
-      if (stepNum === 1) fullImageB64 = null;
-      if (stepNum === 2) tagImageB64 = null;
-      updateUI();
-    }
-
-    // --- Capture Logic (Safe Mode) ---
-    function handleMainAction() {
-      if (!apiKey) return openApiModal();
-      
-      if (videoElement.readyState < 2 || videoElement.videoWidth === 0) {
-        return showToast("カメラの準備中です。数秒待ってからやり直してください。");
-      }
-      
-      if (currentStep === 1) {
-        if (!captureFullImage()) return;
-        currentStep = 2;
-        updateUI();
-      } else if (currentStep === 2) {
-        if (!captureTagImage()) return;
-        currentStep = 3;
-        updateUI();
-      } else if (currentStep === 3) {
-        if (fullImageB64 && tagImageB64) {
-          executeAppraisal();
-        } else {
-          showToast("画像が不足しています");
-          resetToStep(1);
-        }
-      }
-    }
-
-    function captureFullImage() {
-      try {
-        const canvas = document.createElement('canvas');
-        const maxDim = 800;
-        let w = videoElement.videoWidth;
-        let h = videoElement.videoHeight;
-        if (w > h) {
-          if (w > maxDim) { h *= maxDim / w; w = maxDim; }
-        } else {
-          if (h > maxDim) { w *= maxDim / h; h = maxDim; }
-        }
-        canvas.width = Math.floor(w); 
-        canvas.height = Math.floor(h);
-        canvas.getContext('2d').drawImage(videoElement, 0, 0, canvas.width, canvas.height);
-        
-        const dataUrl = canvas.toDataURL('image/jpeg', 0.8);
-        if (!dataUrl || dataUrl === 'data:,') throw new Error("Canvas is empty");
-        
-        fullImageB64 = dataUrl.split(',')[1];
-        return true;
-      } catch (e) {
-        showToast("画像の取得に失敗しました。もう一度撮影してください。");
-        return false;
-      }
-    }
-
-    function captureTagImage() {
-      try {
-        const canvas = document.createElement('canvas');
-        const vRect = videoElement.getBoundingClientRect();
-        const fRect = scanFrame.getBoundingClientRect();
-        
-        const scaleX = videoElement.videoWidth / vRect.width;
-        const scaleY = videoElement.videoHeight / vRect.height;
-        
-        const cropW = Math.floor(fRect.width * scaleX);
-        const cropH = Math.floor(fRect.height * scaleY);
-        const cropX = Math.floor((fRect.left - vRect.left) * scaleX);
-        const cropY = Math.floor((fRect.top - vRect.top) * scaleY);
-        
-        canvas.width = cropW;
-        canvas.height = cropH;
-        canvas.getContext('2d').drawImage(videoElement, cropX, cropY, cropW, cropH, 0, 0, cropW, cropH);
-        
-        const dataUrl = canvas.toDataURL('image/jpeg', 0.8);
-        if (!dataUrl || dataUrl === 'data:,') throw new Error("Canvas is empty");
-        
-        tagImageB64 = dataUrl.split(',')[1];
-        return true;
-      } catch (e) {
-        showToast("タグ画像の取得に失敗しました。もう一度撮影してください。");
-        return false;
-      }
-    }
-
-    // --- File Upload Fallback ---
-    function handleFileUpload(event) {
-      if (!apiKey) return openApiModal();
-      const file = event.target.files[0];
-      if (!file) return;
-
-      const reader = new FileReader();
-      reader.onload = (e) => {
-        const img = new Image();
-        img.onload = () => {
-          try {
+    // 画像リサイズ＆Base64化
+    function processImageFile(file) {
+      return new Promise((resolve) => {
+        const reader = new FileReader();
+        reader.onload = (e) => {
+          const img = new Image();
+          img.onload = () => {
             const canvas = document.createElement('canvas');
+            const maxDim = 900;
             let w = img.width, h = img.height;
-            const maxDim = 800;
-            if (w > maxDim || h > maxDim) {
-               if(w > h){ h *= maxDim/w; w = maxDim; } else { w *= maxDim/h; h = maxDim; }
-            }
-            
-            if (currentStep === 1) {
-              canvas.width = Math.floor(w); canvas.height = Math.floor(h);
-              canvas.getContext('2d').drawImage(img, 0, 0, canvas.width, canvas.height);
-              fullImageB64 = canvas.toDataURL('image/jpeg', 0.8).split(',')[1];
-              currentStep = 2;
-            } else if (currentStep === 2 || currentStep === 3) {
-              const cropW = Math.floor(img.width * 0.6); const cropH = Math.floor(img.height * 0.4);
-              const startX = Math.floor((img.width - cropW) / 2); const startY = Math.floor((img.height - cropH) / 2);
-              canvas.width = cropW; canvas.height = cropH;
-              canvas.getContext('2d').drawImage(img, startX, startY, cropW, cropH, 0, 0, cropW, cropH);
-              tagImageB64 = canvas.toDataURL('image/jpeg', 0.8).split(',')[1];
-              currentStep = 3;
-            }
-            updateUI();
-          } catch(err) {
-            showToast("画像の読み込みに失敗しました。別の画像をお試しください。");
-          }
+            if (w > h && w > maxDim) { h = Math.round((h * maxDim) / w); w = maxDim; }
+            else if (h > maxDim) { w = Math.round((w * maxDim) / h); h = maxDim; }
+            canvas.width = w; canvas.height = h;
+            const ctx = canvas.getContext('2d');
+            ctx.drawImage(img, 0, 0, w, h);
+            resolve(canvas.toDataURL('image/jpeg', 0.85).split(',')[1]);
+          };
+          img.src = e.target.result;
         };
-        img.src = e.target.result;
-      };
-      reader.readAsDataURL(file);
-      event.target.value = '';
-    }
-
-    // --- API Integration ---
-    async function executeAppraisal() {
-      showLoader(true);
-      closeResult();
-
-      const endpoint = `https://generativelanguage.googleapis.com/v1beta/models/gemini-3.8-flash:generateContent?key=${apiKey}`;
-      
-      const systemInstruction = `
-あなたは古着専業の極めてシビアなトップバイヤーです。
-提供された【1枚目: 服の全体画像】と【2枚目: タグ画像】の両方を総合的に分析し、メルカリ相場を査定してください。
-
-【重要査定ルール】
-1. デザインとタグの統合判定:
-   - 1枚目の全体画像から「服種、カラー、シルエット、柄、プリント」を評価せよ。
-   - 2枚目のタグ画像から「ブランド、年代、生産国、サイズ規格」を読み取れ。
-   - タグだけでなく全体のデザイン価値を必ず相場に反映させること。
-2. 最悪ケース基準（Defensive Pricing）:
-   - 状態は「並品」として、無理のない手堅い下限メルカリ売価（conservative_price）を算出せよ。
-3. 推奨上限仕入れ値（max_buy_price）:
-   - conservative_price * 0.9 - 送料 - 最低確保利益1,500円
-4. 判定（verdict）の3段階評価:
-   - '即買い': 相場が高く手堅い品
-   - '要確認': 上振れ余地があるがメルカリで直接相場確認を推奨するもの
-   - '見送り': 利益が出ないもの
-5. メルカリ検索キーワード（mercari_search_query）の生成:
-   - 一発で相場特定できる、最も精度の高いキーワード（3〜4単語）。
-6. 技術介入（technical_intervention）:
-   - 15分以内の工夫で相場を引き上げるテクニック（seo_title, styling, maintenance）を出力せよ。
-`;
-
-      const payload = {
-        system_instruction: { parts: [{ text: systemInstruction }] },
-        contents: [{
-          parts: [
-            { text: `対象カテゴリ: ${currentCategory}` },
-            { text: "【1枚目: 服の全体画像】" },
-            { inline_data: { mime_type: "image/jpeg", data: fullImageB64 } },
-            { text: "【2枚目: タグ画像】" },
-            { inline_data: { mime_type: "image/jpeg", data: tagImageB64 } }
-          ]
-        }],
-        generationConfig: {
-          response_mime_type: "application/json",
-          response_schema: {
-            type: "OBJECT",
-            properties: {
-              brand: { type: "STRING" },
-              era: { type: "STRING" },
-              item_name: { type: "STRING" },
-              size_raw: { type: "STRING" },
-              size_japan: { type: "STRING" },
-              conservative_price: { type: "NUMBER" },
-              max_buy_price: { type: "NUMBER" },
-              expected_shipping: { type: "NUMBER" },
-              verdict: { type: "STRING", enum: ["即買い", "要確認", "見送り"] },
-              mercari_search_query: { type: "STRING" },
-              technical_intervention: {
-                type: "OBJECT",
-                properties: { seo_title: { type: "STRING" }, styling: { type: "STRING" }, maintenance: { type: "STRING" } }
-              },
-              upside_conditions: { type: "ARRAY", items: { type: "STRING" } },
-              reason: { type: "STRING" }
-            },
-            required: ["brand", "era", "item_name", "size_raw", "size_japan", "conservative_price", "max_buy_price", "expected_shipping", "verdict", "mercari_search_query", "technical_intervention", "reason"]
-          }
-        }
-      };
-
-      try {
-        const response = await fetch(endpoint, {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify(payload)
-        });
-
-        if (!response.ok) {
-          const errorData = await response.json().catch(() => ({}));
-          const detailMsg = errorData.error?.message || response.statusText;
-          throw new Error(`APIエラー(${response.status}): \n${detailMsg}`);
-        }
-        
-        const data = await response.json();
-        currentValuation = JSON.parse(data.candidates[0].content.parts[0].text);
-        
-        renderResult(currentValuation);
-        showLoader(false);
-      } catch (err) {
-        console.error(err);
-        showLoader(false);
-        showToast(err.message);
-      }
-    }
-
-    // --- Rendering UI ---
-    function renderResult(data) {
-      const badge = document.getElementById('res-badge');
-      badge.innerText = data.verdict;
-      badge.className = 'badge';
-      if (data.verdict === '即買い') badge.classList.add('green');
-      else if (data.verdict === '要確認') badge.classList.add('yellow');
-      else badge.classList.add('red');
-
-      document.getElementById('res-item-name').innerText = data.item_name || '-';
-      
-      const query = data.mercari_search_query || '';
-      document.getElementById('res-mercari-keyword').innerText = query;
-      const encodedQuery = encodeURIComponent(query);
-      document.getElementById('res-mercari-link').href = `https://jp.mercari.com/search?keyword=${encodedQuery}&status=sold_out|trading`;
-
-      document.getElementById('res-brand').innerText = data.brand || '不明';
-      document.getElementById('res-era').innerText = data.era || '不明';
-      document.getElementById('res-raw-size').innerText = data.size_raw || '不明';
-      document.getElementById('res-jp-size').innerText = data.size_japan || '不明';
-      
-      document.getElementById('res-conservative-price').innerText = `¥${(data.conservative_price || 0).toLocaleString()}`;
-      document.getElementById('res-max-buy').innerText = `¥${(data.max_buy_price || 0).toLocaleString()}`;
-      document.getElementById('res-shipping').innerText = `¥${(data.expected_shipping || 0).toLocaleString()}`;
-      
-      if(data.technical_intervention) {
-        document.getElementById('res-tech-seo').innerText = data.technical_intervention.seo_title || '-';
-        document.getElementById('res-tech-style').innerText = data.technical_intervention.styling || '-';
-        document.getElementById('res-tech-maint').innerText = data.technical_intervention.maintenance || '-';
-      }
-
-      document.getElementById('res-reason').innerText = data.reason || '';
-
-      document.getElementById('inStorePrice').value = '';
-      calculateProfit();
-
-      resultSheet.classList.add('show');
-    }
-
-    function calculateProfit() {
-      if (!currentValuation) return;
-      const inStorePriceRaw = document.getElementById('inStorePrice').value;
-      if (!inStorePriceRaw) {
-        document.getElementById('calc-net-profit').innerText = '¥0';
-        document.getElementById('calc-margin').innerText = '0%';
-        return;
-      }
-
-      const inStorePrice = Number(inStorePriceRaw);
-      const cp = currentValuation.conservative_price || 0;
-      const ship = currentValuation.expected_shipping || 0;
-      
-      const netProfit = cp - (cp * 0.10) - ship - inStorePrice;
-      const profitMargin = cp > 0 ? (netProfit / cp) * 100 : 0;
-
-      const npEl = document.getElementById('calc-net-profit');
-      npEl.innerText = `¥${Math.floor(netProfit).toLocaleString()}`;
-      npEl.style.color = netProfit >= 1500 ? 'var(--success)' : (netProfit > 0 ? 'var(--warning)' : 'var(--danger)');
-      
-      const pmEl = document.getElementById('calc-margin');
-      pmEl.innerText = `${profitMargin.toFixed(1)}%`;
-      pmEl.style.color = netProfit >= 1500 ? 'var(--success)' : (netProfit > 0 ? 'var(--warning)' : 'var(--danger)');
-    }
-
-    function closeResult() {
-      resultSheet.classList.remove('show');
-      resetToStep(1);
-    }
-
-    // --- Utilities ---
-    function copyMercariKeyword() {
-      const txt = document.getElementById('res-mercari-keyword').innerText;
-      if(!txt || txt === '-') return;
-      navigator.clipboard.writeText(txt).then(() => {
-        showToast("キーワードをコピーしました", true);
-      }).catch(err => {
-        showToast("コピーに失敗しました");
+        reader.readAsDataURL(file);
       });
     }
 
-    function openApiModal() {
-      document.getElementById('api-key-input').value = apiKey;
-      document.getElementById('api-modal').style.display = 'flex';
+    // 画像選択時の処理
+    async function handleImages(event) {
+      const files = event.target.files;
+      if (!files || files.length === 0) return;
+
+      const apiKey = localStorage.getItem('gemini_api_key');
+      if (!apiKey) return openKeyModal();
+
+      // プレビュー表示
+      const previewBar = document.getElementById('previewBar');
+      previewBar.innerHTML = '';
+      const base64List = [];
+
+      for (let file of files) {
+        const url = URL.createObjectURL(file);
+        const img = document.createElement('img');
+        img.src = url;
+        img.className = 'preview-img';
+        previewBar.appendChild(img);
+        
+        const b64 = await processImageFile(file);
+        base64List.push(b64);
+      }
+
+      await executeAssessment(base64List);
     }
 
-    function saveApiKey() {
-      const val = document.getElementById('api-key-input').value.trim();
-      if (val) {
-        localStorage.setItem('gemini_api_key', val);
-        apiKey = val;
-        document.getElementById('api-modal').style.display = 'none';
-        showToast("APIキーを保存しました", true);
+    // 査定API呼び出し
+    async function executeAssessment(base64List) {
+      const apiKey = localStorage.getItem('gemini_api_key');
+      document.getElementById('loader').style.display = 'flex';
+
+      const prompt = `
+あなたは古着専業の極めてシビアなトップバイヤーです。
+提供された画像（全体・タグ等）を分析し、メルカリ相場を査定してください。
+
+【査定ルール】
+1. 画像から服のアイテム種別（ジャケット、シャツ、スウェット等）、色、シルエット、柄、ブランド、年代、サイズを自動判別せよ。
+2. デザイン価値を相場に正しく反映させること（例: 黒ハイネックトラックジャケットや企業モノシャツをノーブランドや学校体操服と同列に扱うな）。
+3. 最悪ケース基準（Defensive Pricing）: 並品古着として無理のない手堅い下限メルカリ売価（conservative_price）を算出せよ。
+4. 推奨上限仕入れ値: conservative_price * 0.9 - 送料(アイテムに応じ220〜850) - 利益1500円。
+5. 判定（verdict）: '即買い' | '要確認' | '見送り'
+6. mercari_search_query: メルカリで相場を特定できる最も精度の高いキーワード（3〜4単語）。
+7. technical_intervention: 15分以内の工夫で売価を引き上げる具体策（タイトルSEO、見せ方、15分メンテ）を出力せよ。
+
+以下の純粋なJSONのみ出力せよ（マークダウンのバッククォート不要）:
+{
+  "brand": "ブランド名",
+  "era": "年代",
+  "item_name": "服の特徴名（例: 90s 日本製 トラックジャケット 黒）",
+  "size_raw": "タグ表記",
+  "size_japan": "換算サイズ",
+  "conservative_price": 5000,
+  "max_buy_price": 2000,
+  "expected_shipping": 520,
+  "verdict": "即買い",
+  "mercari_search_query": "asics トラックジャケット 90s 日本製",
+  "technical_intervention": {
+    "seo_title": "即戦力タイトル35字",
+    "styling": "撮影・見せ方のアドバイス",
+    "maintenance": "15分メンテ方法"
+  },
+  "reason": "判断根拠"
+}`;
+
+      const contentsParts = [{ text: prompt }];
+      base64List.forEach(b64 => {
+        contentsParts.push({ inline_data: { mime_type: "image/jpeg", data: b64 } });
+      });
+
+      try {
+        const endpoint = `https://generativelanguage.googleapis.com/v1beta/models/gemini-3.8-flash:generateContent?key=${apiKey}`;
+        const res = await fetch(endpoint, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ contents: [{ parts: contentsParts }] })
+        });
+
+        const json = await res.json();
+        let rawText = json.candidates[0].content.parts[0].text;
+        rawText = rawText.replace(/```json/g, '').replace(/```/g, '').trim();
+        currentValuation = JSON.parse(rawText);
+
+        renderResult(currentValuation);
+      } catch (err) {
+        alert("査定エラー: " + err.message);
+      } finally {
+        document.getElementById('loader').style.display = 'none';
+        // ファイル選択の値をリセットして同じ写真でも再選択可能にする
+        document.getElementById('imageInput').value = '';
       }
     }
 
-    function showLoader(show) {
-      document.getElementById('loader').style.display = show ? 'flex' : 'none';
+    function renderResult(data) {
+      const card = document.getElementById('resultCard');
+      card.style.display = 'block';
+
+      const badge = document.getElementById('resBadge');
+      badge.textContent = data.verdict;
+      badge.className = 'badge-verdict ' + (
+        data.verdict === '即買い' ? 'badge-buy' :
+        data.verdict === '要確認' ? 'badge-cond' : 'badge-pass'
+      );
+
+      document.getElementById('resItemName').textContent = data.item_name || `${data.brand} (${data.era})`;
+      document.getElementById('resTagInfo').textContent = `${data.brand} | ${data.era} | 表記:${data.size_raw} (${data.size_japan})`;
+
+      document.getElementById('resConservativePrice').textContent = `¥${data.conservative_price.toLocaleString()}`;
+      document.getElementById('resMaxBuyPrice').textContent = `¥${data.max_buy_price.toLocaleString()} 以下`;
+
+      // メルカリ直行リンク
+      mercariQuery = data.mercari_search_query || `${data.brand} ${data.item_name}`;
+      const mercariUrl = `https://jp.mercari.com/search?keyword=${encodeURIComponent(mercariQuery)}&status=sold_out|trading`;
+      document.getElementById('btnMercariLink').href = mercariUrl;
+
+      // 技術介入
+      const tech = data.technical_intervention || {};
+      document.getElementById('techSeo').textContent = tech.seo_title || '-';
+      document.getElementById('techStyling').textContent = tech.styling || '-';
+      document.getElementById('techMaint').textContent = tech.maintenance || '-';
+
+      document.getElementById('resReason').textContent = data.reason || '';
+
+      document.getElementById('inStorePriceInput').value = '';
+      document.getElementById('profitOutputText').textContent = '';
+
+      card.scrollIntoView({ behavior: 'smooth' });
     }
 
-    function showToast(msg, isSuccess = false) {
-      const t = document.getElementById('toast');
-      t.innerText = msg;
-      t.style.backgroundColor = isSuccess ? 'var(--success)' : 'var(--danger)';
-      t.style.display = 'block';
-      setTimeout(() => { t.style.display = 'none'; }, 5000); 
+    function copyMercariQuery() {
+      if (!mercariQuery) return;
+      navigator.clipboard.writeText(mercariQuery);
+      const btn = document.getElementById('btnCopyKw');
+      btn.textContent = 'コピー完了！';
+      setTimeout(() => { btn.textContent = 'キーワードをコピー'; }, 2000);
+    }
+
+    function recalcProfit() {
+      if (!currentValuation) return;
+      const inStore = parseFloat(document.getElementById('inStorePriceInput').value);
+      const out = document.getElementById('profitOutputText');
+      if (isNaN(inStore) || inStore <= 0) {
+        out.textContent = '';
+        return;
+      }
+      const sell = currentValuation.conservative_price;
+      const fee = Math.floor(sell * 0.10);
+      const shipping = currentValuation.expected_shipping || 520;
+      const profit = sell - fee - shipping - inStore;
+      const margin = ((profit / sell) * 100).toFixed(1);
+
+      if (profit > 0) {
+        out.style.color = 'var(--green)';
+        out.textContent = `想定純利益: +¥${profit.toLocaleString()} (利益率: ${margin}%)`;
+      } else {
+        out.style.color = 'var(--accent)';
+        out.textContent = `赤字リスク: ¥${profit.toLocaleString()} (利益率: ${margin}%)`;
+      }
     }
   </script>
 </body>
