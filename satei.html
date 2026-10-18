@@ -460,7 +460,6 @@
 
     function captureFullImage() {
       const canvas = document.createElement('canvas');
-      // リサイズ (最大長800px程度)
       const maxDim = 800;
       let w = videoElement.videoWidth;
       let h = videoElement.videoHeight;
@@ -516,7 +515,6 @@
             fullImageB64 = canvas.toDataURL('image/jpeg', 0.8).split(',')[1];
             currentStep = 2;
           } else if (currentStep === 2 || currentStep === 3) {
-            // タグ用クロップ (中央50%)
             const cropW = img.width * 0.6; const cropH = img.height * 0.4;
             const startX = (img.width - cropW) / 2; const startY = (img.height - cropH) / 2;
             canvas.width = cropW; canvas.height = cropH;
@@ -607,7 +605,12 @@
           body: JSON.stringify(payload)
         });
 
-        if (!response.ok) throw new Error(`API Error: ${response.status}`);
+        // エラー時の詳細を抽出して表示する処理
+        if (!response.ok) {
+          const errorData = await response.json().catch(() => ({}));
+          const detailMsg = errorData.error?.message || response.statusText;
+          throw new Error(`APIエラー(${response.status}): ${detailMsg}`);
+        }
         
         const data = await response.json();
         currentValuation = JSON.parse(data.candidates[0].content.parts[0].text);
@@ -617,13 +620,13 @@
       } catch (err) {
         console.error(err);
         showLoader(false);
-        showToast("査定エラー: 処理を中断しました。通信環境やAPIキーを確認してください。");
+        // トーストに具体的なエラー理由を表示
+        showToast(err.message);
       }
     }
 
     // --- Rendering UI ---
     function renderResult(data) {
-      // 判定バッジ
       const badge = document.getElementById('res-badge');
       badge.innerText = data.verdict;
       badge.className = 'badge';
@@ -633,24 +636,20 @@
 
       document.getElementById('res-item-name').innerText = data.item_name || '-';
       
-      // メルカリ検索
       const query = data.mercari_search_query || '';
       document.getElementById('res-mercari-keyword').innerText = query;
       const encodedQuery = encodeURIComponent(query);
       document.getElementById('res-mercari-link').href = `https://jp.mercari.com/search?keyword=${encodedQuery}&status=sold_out|trading`;
 
-      // サマリー
       document.getElementById('res-brand').innerText = data.brand || '不明';
       document.getElementById('res-era').innerText = data.era || '不明';
       document.getElementById('res-raw-size').innerText = data.size_raw || '不明';
       document.getElementById('res-jp-size').innerText = data.size_japan || '不明';
       
-      // 価格
       document.getElementById('res-conservative-price').innerText = `¥${(data.conservative_price || 0).toLocaleString()}`;
       document.getElementById('res-max-buy').innerText = `¥${(data.max_buy_price || 0).toLocaleString()}`;
       document.getElementById('res-shipping').innerText = `¥${(data.expected_shipping || 0).toLocaleString()}`;
       
-      // 技術介入
       if(data.technical_intervention) {
         document.getElementById('res-tech-seo').innerText = data.technical_intervention.seo_title || '-';
         document.getElementById('res-tech-style').innerText = data.technical_intervention.styling || '-';
@@ -659,7 +658,6 @@
 
       document.getElementById('res-reason').innerText = data.reason || '';
 
-      // Reset recalculation inputs
       document.getElementById('inStorePrice').value = '';
       calculateProfit();
 
@@ -679,7 +677,6 @@
       const cp = currentValuation.conservative_price || 0;
       const ship = currentValuation.expected_shipping || 0;
       
-      // Net Profit = conservative_price - (conservative_price * 0.10) - expected_shipping - in_store_price
       const netProfit = cp - (cp * 0.10) - ship - inStorePrice;
       const profitMargin = cp > 0 ? (netProfit / cp) * 100 : 0;
 
@@ -694,7 +691,6 @@
 
     function closeResult() {
       resultSheet.classList.remove('show');
-      // Reset to Step 1 for next scan
       resetToStep(1);
     }
 
@@ -733,7 +729,7 @@
       t.innerText = msg;
       t.style.backgroundColor = isSuccess ? 'var(--success)' : 'var(--danger)';
       t.style.display = 'block';
-      setTimeout(() => { t.style.display = 'none'; }, 3000);
+      setTimeout(() => { t.style.display = 'none'; }, 5000); // エラーが読みきれるよう5秒に延長
     }
   </script>
 </body>
