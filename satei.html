@@ -10,60 +10,47 @@
       --accent: #2563eb; --green: #22c55e; --yellow: #eab308; --red: #ef4444;
     }
     * { box-sizing: border-box; margin: 0; padding: 0; font-family: -apple-system, BlinkMacSystemFont, sans-serif; }
-    body { background: var(--bg); color: var(--text); padding: 14px; padding-bottom: 60px; }
+    body { background: var(--bg); color: var(--text); padding: 16px; padding-bottom: 60px; }
 
-    header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; }
-    h1 { font-size: 1.1rem; font-weight: bold; }
+    header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; }
+    h1 { font-size: 1.15rem; font-weight: bold; }
     .btn-gear { background: none; border: none; font-size: 1.3rem; cursor: pointer; color: #fff; }
 
-    /* カメラ枠 */
-    .cam-area { position: relative; width: 100%; height: 280px; background: #000; border-radius: 12px; overflow: hidden; margin-bottom: 10px; }
-    video { width: 100%; height: 100%; object-fit: cover; }
-    
-    /* 広角/標準ワンタップ切替バッジ */
-    .cam-controls {
-      position: absolute; top: 10px; right: 10px; display: flex; gap: 6px; z-index: 10;
+    /* カメラ起動ボタン（スマホ標準カメラ直結） */
+    .btn-camera-trigger {
+      display: block; width: 100%; background: #1e293b; border: 2px dashed #475569;
+      border-radius: 14px; padding: 24px 16px; text-align: center; cursor: pointer;
+      margin-bottom: 14px; transition: border-color 0.2s;
     }
-    .btn-cam-toggle {
-      background: rgba(15, 23, 42, 0.75); color: #fff; border: 1px solid #475569;
-      padding: 6px 12px; border-radius: 20px; font-size: 0.8rem; font-weight: bold; cursor: pointer;
-      backdrop-filter: blur(4px);
-    }
-    .btn-cam-toggle.active {
-      background: var(--accent); border-color: var(--accent);
-    }
-
-    /* 撮影ボタン */
-    .btn-snap {
-      width: 100%; background: #334155; color: #fff; border: 1px solid #475569;
-      padding: 14px; border-radius: 8px; font-size: 1rem; font-weight: bold; cursor: pointer; margin-bottom: 10px;
-    }
+    .btn-camera-trigger:active { border-color: var(--accent); }
+    .btn-camera-trigger span { font-size: 2rem; display: block; margin-bottom: 6px; }
+    .btn-camera-trigger strong { font-size: 1.05rem; display: block; margin-bottom: 2px; }
+    .btn-camera-trigger p { font-size: 0.75rem; color: var(--sub); }
 
     /* 撮影サムネイル一覧 */
-    .preview-box { display: flex; gap: 8px; margin-bottom: 14px; min-height: 60px; align-items: center; }
-    .preview-thumb { width: 60px; height: 60px; border-radius: 6px; object-fit: cover; border: 1px solid #475569; }
-    .btn-reset-photos { background: none; border: none; color: var(--red); font-size: 0.75rem; cursor: pointer; margin-left: auto; text-decoration: underline; }
+    .preview-box { display: flex; gap: 8px; margin-bottom: 16px; min-height: 60px; align-items: center; }
+    .preview-thumb { width: 65px; height: 65px; border-radius: 8px; object-fit: cover; border: 1px solid #475569; }
+    .btn-reset-photos { background: none; border: none; color: var(--red); font-size: 0.8rem; cursor: pointer; margin-left: auto; text-decoration: underline; }
 
     /* 仕入れ値入力 */
-    .field-label { display: block; font-size: 0.8rem; color: var(--sub); margin-bottom: 4px; }
+    .field-label { display: block; font-size: 0.8rem; color: var(--sub); margin-bottom: 6px; }
     .price-input {
-      width: 100%; padding: 12px; background: var(--card); border: 1px solid #475569;
-      border-radius: 8px; color: #fff; font-size: 1.2rem; font-weight: bold; outline: none; margin-bottom: 14px;
+      width: 100%; padding: 14px; background: var(--card); border: 1px solid #475569;
+      border-radius: 10px; color: #fff; font-size: 1.25rem; font-weight: bold; outline: none; margin-bottom: 16px;
     }
 
     /* 査定ボタン */
     .btn-calc {
       width: 100%; background: var(--accent); color: #fff; border: none; padding: 15px;
-      border-radius: 8px; font-size: 1.1rem; font-weight: bold; cursor: pointer;
+      border-radius: 10px; font-size: 1.1rem; font-weight: bold; cursor: pointer;
     }
 
     /* 結果カード */
     .result-card {
-      margin-top: 16px; background: var(--card); border-radius: 12px; padding: 16px;
+      margin-top: 20px; background: var(--card); border-radius: 14px; padding: 16px;
       border: 1px solid #334155; display: none;
     }
 
-    /* 信号機バッジ */
     .badge {
       display: inline-block; padding: 6px 12px; border-radius: 6px; font-weight: 800;
       font-size: 0.95rem; margin-bottom: 10px;
@@ -81,14 +68,13 @@
     }
     .btn-mercari {
       display: block; width: 100%; background: #e11d48; color: #fff; text-align: center;
-      padding: 12px; border-radius: 6px; font-weight: bold; text-decoration: none; font-size: 0.9rem;
+      padding: 12px; border-radius: 6px; font-weight: bold; text-decoration: none; font-size: 0.95rem;
     }
     .btn-copy-kw {
       width: 100%; margin-top: 8px; padding: 8px; background: #334155; color: var(--sub);
       border: none; border-radius: 6px; font-size: 0.75rem; cursor: pointer;
     }
 
-    /* 相場グリッド */
     .price-grid {
       display: grid; grid-template-columns: 1fr 1fr; gap: 8px; background: #0f172a;
       padding: 12px; border-radius: 8px; margin-bottom: 10px;
@@ -96,7 +82,6 @@
     .price-cell span { display: block; font-size: 0.75rem; color: var(--sub); }
     .price-cell strong { font-size: 1.25rem; }
 
-    /* 純利益 */
     .profit-row {
       display: flex; justify-content: space-between; align-items: center; background: #0f172a;
       padding: 12px; border-radius: 8px; margin-bottom: 12px; font-weight: bold;
@@ -150,19 +135,17 @@
     <button class="btn-gear" onclick="openKeyModal()">⚙️</button>
   </header>
 
-  <!-- カメラ撮影エリア（広角切替ボタン付き） -->
-  <div class="cam-area">
-    <video id="video" autoplay playsinline muted></video>
-    <div class="cam-controls">
-      <button class="btn-cam-toggle active" id="btnWide" onclick="setWideMode(true)">0.5x 広角</button>
-      <button class="btn-cam-toggle" id="btnNormal" onclick="setWideMode(false)">1.0x 標準</button>
-    </div>
-  </div>
+  <!-- スマホ標準カメラを起動（0.5x広角がそのまま使える） -->
+  <label class="btn-camera-trigger">
+    <span>📸</span>
+    <strong id="camTriggerText">カメラを起動して撮影</strong>
+    <p>標準カメラが開くので 0.5x広角（全体）やタグを撮影</p>
+    <input type="file" accept="image/*" capture="environment" style="display:none;" onchange="handlePhotoCapture(event)">
+  </label>
 
-  <button class="btn-snap" onclick="snapPhoto()">📸 写真を撮る（全体・タグ）</button>
-
+  <!-- 撮影サムネイル -->
   <div class="preview-box" id="previewBox">
-    <span style="font-size:0.75rem; color:#64748b;" id="emptyText">未撮影（広角で全体 ＋ 寄りでタグ）</span>
+    <span style="font-size:0.75rem; color:#64748b;" id="emptyText">未撮影（全体写真 ＋ タグ写真）</span>
   </div>
 
   <!-- 仕入れ費入力 -->
@@ -239,121 +222,65 @@
 
   <script>
     const photoList = [];
-    let videoTrack = null;
     let mercariQuery = '';
-    let isWide = true;
-    const video = document.getElementById('video');
 
-    // 広角最優先でカメラを起動
-    async function initCamera(preferWide = true) {
-      if (video.srcObject) {
-        video.srcObject.getTracks().forEach(t => t.stop());
-      }
+    // 標準カメラで撮影した写真を取り込み
+    function handlePhotoCapture(event) {
+      const file = event.target.files[0];
+      if (!file) return;
 
-      try {
-        const devices = await navigator.mediaDevices.enumerateDevices();
-        const videoDevices = devices.filter(d => d.kind === 'videoinput');
-
-        // 超広角(ultra-wide)や広角キーワードを持つ背面カメラを探す
-        let targetDevice = null;
-        if (preferWide) {
-          targetDevice = videoDevices.find(d => 
-            d.label.toLowerCase().includes('ultra') || 
-            d.label.toLowerCase().includes('wide') || 
-            d.label.toLowerCase().includes('0')
-          );
-        }
-
-        const constraints = {
-          video: {
-            deviceId: targetDevice ? { exact: targetDevice.deviceId } : undefined,
-            facingMode: targetDevice ? undefined : 'environment',
-            width: { ideal: 1920 },
-            height: { ideal: 1080 }
-          }
+      const reader = new FileReader();
+      reader.onload = (e) => {
+        const img = new Image();
+        img.onload = () => {
+          const canvas = document.getElementById('canvas');
+          let w = img.width, h = img.height;
+          const maxDim = 900;
+          if (w > h && w > maxDim) { h = Math.round((h * maxDim) / w); w = maxDim; }
+          else if (h > maxDim) { w = Math.round((w * maxDim) / h); h = maxDim; }
+          canvas.width = w; canvas.height = h;
+          const ctx = canvas.getContext('2d');
+          ctx.drawImage(img, 0, 0, w, h);
+          const b64 = canvas.toDataURL('image/jpeg', 0.85).split(',')[1];
+          photoList.push(b64);
+          renderPreviews();
         };
-
-        const stream = await navigator.mediaDevices.getUserMedia(constraints);
-        video.srcObject = stream;
-        videoTrack = stream.getVideoTracks()[0];
-
-        // 端末がハードウェアズーム（zoom API）に対応している場合は最小倍率（0.5x等）を適用
-        const capabilities = videoTrack.getCapabilities ? videoTrack.getCapabilities() : {};
-        if (capabilities.zoom) {
-          const targetZoom = preferWide ? capabilities.zoom.min : Math.min(1.0, capabilities.zoom.max);
-          await videoTrack.applyConstraints({ advanced: [{ zoom: targetZoom }] });
-        }
-      } catch (e) {
-        console.warn("Camera init warning:", e);
-      }
-    }
-
-    // 広角(0.5x)と標準(1.0x)のトグル切り替え
-    async function setWideMode(wide) {
-      isWide = wide;
-      document.getElementById('btnWide').classList.toggle('active', wide);
-      document.getElementById('btnNormal').classList.toggle('active', !wide);
-
-      // ハードウェアズーム対応の場合
-      if (videoTrack && videoTrack.getCapabilities) {
-        const capabilities = videoTrack.getCapabilities();
-        if (capabilities.zoom) {
-          const targetZoom = wide ? capabilities.zoom.min : Math.min(1.0, capabilities.zoom.max);
-          try {
-            await videoTrack.applyConstraints({ advanced: [{ zoom: targetZoom }] });
-            return;
-          } catch (err) {
-            console.warn("Zoom constraint failed, switching stream...", err);
-          }
-        }
-      }
-
-      // ズームAPI非対応端末はカメラストリーム再取得で切り替え
-      await initCamera(wide);
-    }
-
-    function snapPhoto() {
-      const canvas = document.getElementById('canvas');
-      canvas.width = 800;
-      canvas.height = Math.round((800 * video.videoHeight) / video.videoWidth);
-      const ctx = canvas.getContext('2d');
-      ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
-      const b64 = canvas.toDataURL('image/jpeg', 0.85).split(',')[1];
-
-      photoList.push(b64);
-      renderPreviews();
-
-      // 1枚目（全体）を広角で撮ったら、タグが撮りやすいよう標準（1.0x）へ自動切替をアシスト
-      if (photoList.length === 1 && isWide) {
-        setWideMode(false);
-      }
+        img.src = e.target.result;
+      };
+      reader.readAsDataURL(file);
+      event.target.value = ''; // 次の撮影のためリセット
     }
 
     function renderPreviews() {
       const box = document.getElementById('previewBox');
+      const triggerText = document.getElementById('camTriggerText');
       box.innerHTML = '';
+
       if (photoList.length === 0) {
-        box.innerHTML = '<span style="font-size:0.75rem; color:#64748b;" id="emptyText">未撮影（広角で全体 ＋ 寄りでタグ）</span>';
+        box.innerHTML = '<span style="font-size:0.75rem; color:#64748b;" id="emptyText">未撮影（全体写真 ＋ タグ写真）</span>';
+        triggerText.textContent = '1枚目を撮影（広角0.5xで全体）';
         return;
       }
+
       photoList.forEach(b64 => {
         const img = document.createElement('img');
         img.src = `data:image/jpeg;base64,${b64}`;
         img.className = 'preview-thumb';
         box.appendChild(img);
       });
+
       const resetBtn = document.createElement('button');
       resetBtn.className = 'btn-reset-photos';
       resetBtn.textContent = '撮り直し';
       resetBtn.onclick = resetPhotos;
       box.appendChild(resetBtn);
+
+      triggerText.textContent = `続けて撮影（現在 ${photoList.length} 枚）`;
     }
 
     function resetPhotos() {
       photoList.length = 0;
       renderPreviews();
-      // 撮り直しの際は再び広角（0.5x）に戻す
-      setWideMode(true);
     }
 
     function openKeyModal() {
@@ -434,7 +361,6 @@
     function showResult(data, cost) {
       document.getElementById('resultCard').style.display = 'block';
 
-      // 信号機バッジ
       const badge = document.getElementById('resBadge');
       badge.textContent = data.verdict;
       badge.className = 'badge ' + (
@@ -447,17 +373,14 @@
       document.getElementById('resMarketPrice').textContent = `¥${data.market_price.toLocaleString()}`;
       document.getElementById('resShipping').textContent = `¥${data.shipping.toLocaleString()}`;
 
-      // メルカリ直行リンク
       mercariQuery = data.mercari_search_query || `${data.brand} ${data.name}`;
       const mercariUrl = `https://jp.mercari.com/search?keyword=${encodeURIComponent(mercariQuery)}&status=sold_out|trading`;
       document.getElementById('btnMercariLink').href = mercariUrl;
 
-      // 6軸判定・復刻検知
       document.getElementById('resEra').textContent = data.era;
       document.getElementById('resAxes').textContent = data.axes_summary;
       document.getElementById('resRepro').textContent = data.repro_check;
 
-      // 純利益計算
       const fee = Math.floor(data.market_price * 0.10);
       const profit = data.market_price - fee - data.shipping - cost;
       const profitEl = document.getElementById('resProfit');
@@ -470,7 +393,6 @@
         profitEl.style.color = "var(--sub)";
       }
 
-      // 技術介入
       const tech = data.technical_intervention || {};
       document.getElementById('techSeo').textContent = tech.seo_title || '-';
       document.getElementById('techStyling').textContent = tech.styling || '-';
@@ -480,8 +402,16 @@
       document.getElementById('resultCard').scrollIntoView({ behavior: 'smooth' });
     }
 
+    function copyMercariQuery() {
+      if (!mercariQuery) return;
+      navigator.clipboard.writeText(mercariQuery);
+      const btn = document.getElementById('btnCopyKw');
+      btn.textContent = 'コピー完了！';
+      setTimeout(() => { btn.textContent = 'キーワードをコピー'; }, 2000);
+    }
+
     window.addEventListener('DOMContentLoaded', () => {
-      initCamera(true);
+      renderPreviews();
       if (!localStorage.getItem('gemini_api_key')) openKeyModal();
     });
   </script>
